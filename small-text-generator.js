@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const grid = document.getElementById('tpx-stg-fonts-grid');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
 
+  // Only these keys render live on every keystroke (the ones visible by default,
+  // before "Show More Styles" is expanded). Hidden styles are computed once,
+  // the moment that section is revealed — not on every keystroke while unseen.
+  const DEFAULT_VISIBLE_KEYS = ['smallcaps', 'superscript', 'subscript'];
+  let extraStylesRevealed = false;
+
   /* ---------- Show More Styles toggle ---------- */
   const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
   const extraStyles = document.getElementById('tpx-stg-extra-styles');
@@ -14,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function () {
       extraStyles.hidden = isExpanded;
       if (moreStylesText) {
         moreStylesText.textContent = isExpanded ? 'Show More Styles' : 'Show Less Styles';
+      }
+      if (!isExpanded && !extraStylesRevealed) {
+        extraStylesRevealed = true;
+        const text = ta.value;
+        const hiddenKeys = Object.keys(STYLE_FNS).filter(function (k) {
+          return DEFAULT_VISIBLE_KEYS.indexOf(k) === -1;
+        });
+        renderKeys(hiddenKeys, text, text.trim() === '');
       }
     });
   }
@@ -247,22 +261,9 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   });
 
-  // ---- Live stats + fill in the static card bodies ----
-  function render() {
-    const text = ta.value;
-    const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
-    const chars = text.replace(/\n/g, '').length;
-    const charsNoSpaces = text.replace(/\s/g, '').length;
-
-    document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
-    document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
-    document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
-
-    updateTimeline(chars, words);
-
-    const isEmpty = text.trim() === '';
-
-    Object.keys(STYLE_FNS).forEach(function (key) {
+  // ---- Renders only the given subset of style keys ----
+  function renderKeys(keys, text, isEmpty) {
+    keys.forEach(function (key) {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
       if (isEmpty) {
@@ -282,6 +283,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       }
     });
+  }
+
+  function getActiveKeys() {
+    return extraStylesRevealed ? Object.keys(STYLE_FNS) : DEFAULT_VISIBLE_KEYS;
+  }
+
+  // ---- Live stats + fill in the visible card bodies ----
+  function render() {
+    const text = ta.value;
+    const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
+    const chars = text.replace(/\n/g, '').length;
+    const charsNoSpaces = text.replace(/\s/g, '').length;
+
+    document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
+    document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
+    document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
+
+    updateTimeline(chars, words);
+
+    const isEmpty = text.trim() === '';
+    renderKeys(getActiveKeys(), text, isEmpty);
   }
 
   // ---- Instant render on input, throttled to one paint frame instead of a fixed debounce ----
