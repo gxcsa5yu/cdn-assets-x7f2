@@ -237,6 +237,16 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-bl', words >= 1500);
   }
 
+  // ---- Cache DOM refs per style key once (avoids repeated querySelectorAll on every keystroke) ----
+  const styleRefs = {};
+  Object.keys(STYLE_FNS).forEach(function (key) {
+    styleRefs[key] = {
+      body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
+      card: document.getElementById('tpx-stg-card-' + key),
+      previewBios: grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]')
+    };
+  });
+
   // ---- Live stats + fill in the static card bodies ----
   function render() {
     const text = ta.value;
@@ -250,22 +260,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateTimeline(chars, words);
 
+    const isEmpty = text.trim() === '';
+
     Object.keys(STYLE_FNS).forEach(function (key) {
       const fn = STYLE_FNS[key];
-      const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
-      const card = document.getElementById('tpx-stg-card-' + key);
-      const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
-      if (text.trim() === '') {
-        body.textContent = 'Type something to start';
-        body.classList.add('tpx-stg-placeholder');
-        card.classList.add('tpx-stg-card-empty');
-        previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
+      const refs = styleRefs[key];
+      if (isEmpty) {
+        refs.body.textContent = 'Type something to start';
+        refs.body.classList.add('tpx-stg-placeholder');
+        refs.card.classList.add('tpx-stg-card-empty');
+        refs.previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
       } else {
         const styled = fn(text);
-        body.textContent = styled;
-        body.classList.remove('tpx-stg-placeholder');
-        card.classList.remove('tpx-stg-card-empty');
-        previewBios.forEach(function (el) {
+        refs.body.textContent = styled;
+        refs.body.classList.remove('tpx-stg-placeholder');
+        refs.card.classList.remove('tpx-stg-card-empty');
+        refs.previewBios.forEach(function (el) {
           const view = el.closest('.tpx-stg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
@@ -274,10 +284,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  let renderDebounceId = null;
+  // ---- Instant render on input, throttled to one paint frame instead of a fixed debounce ----
+  let renderScheduled = false;
   ta.addEventListener('input', function () {
-    if (renderDebounceId) clearTimeout(renderDebounceId);
-    renderDebounceId = setTimeout(render, 120);
+    if (renderScheduled) return;
+    renderScheduled = true;
+    requestAnimationFrame(function () {
+      render();
+      renderScheduled = false;
+    });
   });
 
   /* ---------- Info strip toggle ---------- */
@@ -343,16 +358,16 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('scroll', hideTooltip, true);
 
   document.addEventListener('keydown', function (e) {
-  if (e.key !== 'Escape') return;
-  document.querySelectorAll('.tpx-stg-preview-panel.is-open').forEach(function (panel) {
-    panel.classList.remove('is-open');
-    const key = panel.dataset.key;
-    const btn = grid.querySelector('.tpx-stg-preview-btn[data-key="' + key + '"]');
-    const card = document.getElementById('tpx-stg-card-' + key);
-    if (btn) btn.classList.remove('tpx-stg-preview-active');
-    if (card) card.classList.remove('tpx-stg-preview-is-open');
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.tpx-stg-preview-panel.is-open').forEach(function (panel) {
+      panel.classList.remove('is-open');
+      const key = panel.dataset.key;
+      const btn = grid.querySelector('.tpx-stg-preview-btn[data-key="' + key + '"]');
+      const card = document.getElementById('tpx-stg-card-' + key);
+      if (btn) btn.classList.remove('tpx-stg-preview-active');
+      if (card) card.classList.remove('tpx-stg-preview-is-open');
+    });
   });
-});
 
   // ---- Card copy / download / preview toggle (event delegation on the static grid) ----
   grid.addEventListener('click', function (e) {
