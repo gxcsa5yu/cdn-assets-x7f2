@@ -196,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
     return chars.slice(0, limit - 1).join('') + '…';
   }
 
+  // Placeholder copy, run through each card's own STYLE_FNS transform so the
+  // empty state itself previews the style — instead of sitting in plain Inter.
+  const PLACEHOLDER_BODY = 'Type something to start';
+  const PLACEHOLDER_PREVIEW = 'Type something to see it here';
+
   /* =========================================================
      TRACK / NEEDLE / NODE-POINT LOGIC
      Breakpoints mirror the six node points exactly as placed
@@ -267,10 +272,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
       if (isEmpty) {
-        refs.body.textContent = 'Type something to start';
+        refs.body.textContent = fn(PLACEHOLDER_BODY);
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
+        refs.previewBios.forEach(function (el) { el.textContent = fn(PLACEHOLDER_PREVIEW); });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
