@@ -3,9 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const grid = document.getElementById('tpx-stg-fonts-grid');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
 
-  // Only these keys render live on every keystroke (the ones visible by default,
-  // before "Show More Styles" is expanded). Hidden styles are computed once,
-  // the moment that section is revealed — not on every keystroke while unseen.
   const DEFAULT_VISIBLE_KEYS = ['smallcaps', 'superscript', 'subscript'];
   let extraStylesRevealed = false;
 
@@ -23,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       if (!isExpanded && !extraStylesRevealed) {
         extraStylesRevealed = true;
-        const text = ta.value;
+        const text = ta ? ta.value : '';
         const hiddenKeys = Object.keys(STYLE_FNS).filter(function (k) {
           return DEFAULT_VISIBLE_KEYS.indexOf(k) === -1;
         });
@@ -33,11 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* =========================================================
-     CONVERSION ENGINE — the only reason JS exists here: turning
-     typed text into unicode-mapped glyph variants. There's no
-     CSS/HTML way to remap characters, so this part must be JS.
-     The card markup itself is now static HTML above; JS only
-     fills in text content and wires up interactions.
+     CONVERSION ENGINE
      ========================================================= */
 
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
@@ -158,9 +151,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
-  // ---- Style registry: maps each card's data-key to its conversion function.
-  // Card markup (name/safety dot/layout) lives in the static HTML above —
-  // this object only supplies the transform logic. ----
   const STYLE_FNS = {
     bold:        t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}),
     smallcaps:   t => mapLookup(t, SMALLCAPS),
@@ -186,30 +176,18 @@ document.addEventListener('DOMContentLoaded', function () {
   const ICON_COPY  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.412 .412 1.737 1.012"></path></svg>';
   const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path></svg>';
 
-  // Real per-platform bio character caps — preview text is clipped to match what the platform actually allows
   const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101 };
 
   function truncateForPlatform(str, limit) {
     if (!limit) return str;
-    const chars = Array.from(str); // codepoint-safe, since styled text uses supplementary-plane glyphs
+    const chars = Array.from(str);
     if (chars.length <= limit) return str;
     return chars.slice(0, limit - 1).join('') + '…';
   }
 
-  // Placeholder copy, run through each card's own STYLE_FNS transform so the
-  // empty state itself previews the style — instead of sitting in plain Inter.
   const PLACEHOLDER_BODY = 'Type something to start';
   const PLACEHOLDER_PREVIEW = 'Type something to see it here';
 
-  /* =========================================================
-     TRACK / NEEDLE / NODE-POINT LOGIC
-     Breakpoints mirror the six node points exactly as placed
-     in the markup (101c/15%, 150c/29%, 160c/43%, 190c/57%,
-     200c/71%, 220c/85%), so the needle/fill lands precisely on a
-     node the instant the character count matches it. Past the
-     last node (220c) the same slope from the previous segment is
-     continued until the track reaches 100%.
-     ========================================================= */
   const CHAR_BREAKPOINTS = [
     { chars: 0,   pct: 0 },
     { chars: 101, pct: 15 },
@@ -244,8 +222,10 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateTimeline(chars, words) {
     const pct = Math.max(0, Math.min(interpolatePct(chars), 100));
 
-    document.getElementById('tpx-timeline-progress').style.width = pct + '%';
-    document.getElementById('tpx-timeline-needle').style.left = pct + '%';
+    const progress = document.getElementById('tpx-timeline-progress');
+    const needle = document.getElementById('tpx-timeline-needle');
+    if (progress) progress.style.width = pct + '%';
+    if (needle) needle.style.left = pct + '%';
 
     toggleNode('node-ig', chars >= 101);
     toggleNode('node-fb', chars >= 150);
@@ -256,36 +236,52 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-bl', words >= 1500);
   }
 
-  // ---- Cache DOM refs per style key once (avoids repeated querySelectorAll on every keystroke) ----
+  // ---- Cache DOM refs per style key safely ----
   const styleRefs = {};
-  Object.keys(STYLE_FNS).forEach(function (key) {
-    styleRefs[key] = {
-      body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
-      card: document.getElementById('tpx-stg-card-' + key),
-      previewBios: grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]')
-    };
-  });
+  if (grid) {
+    Object.keys(STYLE_FNS).forEach(function (key) {
+      styleRefs[key] = {
+        body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
+        card: document.getElementById('tpx-stg-card-' + key),
+        previewBios: grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]')
+      };
+    });
+  }
 
-  // ---- Renders only the given subset of style keys ----
+  // ---- Renders given subset of style keys with safe element handling ----
   function renderKeys(keys, text, isEmpty) {
     keys.forEach(function (key) {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
+      if (!fn || !refs) return;
+
       if (isEmpty) {
-        refs.body.textContent = fn(PLACEHOLDER_BODY);
-        refs.body.classList.add('tpx-stg-placeholder');
-        refs.card.classList.add('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) { el.textContent = fn(PLACEHOLDER_PREVIEW); });
+        if (refs.body) {
+          refs.body.textContent = fn(PLACEHOLDER_BODY);
+          refs.body.classList.add('tpx-stg-placeholder');
+        }
+        if (refs.card) {
+          refs.card.classList.add('tpx-stg-card-empty');
+        }
+        if (refs.previewBios) {
+          refs.previewBios.forEach(function (el) { el.textContent = fn(PLACEHOLDER_PREVIEW); });
+        }
       } else {
         const styled = fn(text);
-        refs.body.textContent = styled;
-        refs.body.classList.remove('tpx-stg-placeholder');
-        refs.card.classList.remove('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) {
-          const view = el.closest('.tpx-stg-pv-view');
-          const platform = view ? view.dataset.view : null;
-          el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
-        });
+        if (refs.body) {
+          refs.body.textContent = styled;
+          refs.body.classList.remove('tpx-stg-placeholder');
+        }
+        if (refs.card) {
+          refs.card.classList.remove('tpx-stg-card-empty');
+        }
+        if (refs.previewBios) {
+          refs.previewBios.forEach(function (el) {
+            const view = el.closest('.tpx-stg-pv-view');
+            const platform = view ? view.dataset.view : null;
+            el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
+          });
+        }
       }
     });
   }
@@ -294,33 +290,39 @@ document.addEventListener('DOMContentLoaded', function () {
     return extraStylesRevealed ? Object.keys(STYLE_FNS) : DEFAULT_VISIBLE_KEYS;
   }
 
-  // ---- Live stats + fill in the visible card bodies ----
   function render() {
-    const text = ta.value;
-    const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
+    const text = ta ? ta.value : '';
+    const isEmpty = text.trim() === '';
+    const words = isEmpty ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
     const chars = text.replace(/\n/g, '').length;
     const charsNoSpaces = text.replace(/\s/g, '').length;
 
-    document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
-    document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
-    document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
+    const valWords = document.getElementById('tpx-stg-val-words');
+    const valChars = document.getElementById('tpx-stg-val-chars');
+    const valCharsNs = document.getElementById('tpx-stg-val-chars-ns');
+
+    if (valWords) valWords.textContent = words.toLocaleString();
+    if (valChars) valChars.textContent = chars.toLocaleString();
+    if (valCharsNs) valCharsNs.textContent = charsNoSpaces.toLocaleString();
 
     updateTimeline(chars, words);
 
-    const isEmpty = text.trim() === '';
-    renderKeys(getActiveKeys(), text, isEmpty);
+    // Initial load converts ALL placeholder cards automatically via JS
+    const keysToRender = isEmpty ? Object.keys(STYLE_FNS) : getActiveKeys();
+    renderKeys(keysToRender, text, isEmpty);
   }
 
-  // ---- Instant render on input, throttled to one paint frame instead of a fixed debounce ----
   let renderScheduled = false;
-  ta.addEventListener('input', function () {
-    if (renderScheduled) return;
-    renderScheduled = true;
-    requestAnimationFrame(function () {
-      render();
-      renderScheduled = false;
+  if (ta) {
+    ta.addEventListener('input', function () {
+      if (renderScheduled) return;
+      renderScheduled = true;
+      requestAnimationFrame(function () {
+        render();
+        renderScheduled = false;
+      });
     });
-  });
+  }
 
   /* ---------- Info strip toggle ---------- */
   const infoToggle = document.getElementById('tpx-stg-info-toggle');
@@ -333,15 +335,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ---------- Shared safety-dot tooltip ----------
-     Replaces the native `title` attribute (which doesn't work on touch
-     and is inconsistent across browsers) with a single positioned
-     tooltip: hover/focus reveals it on desktop, tap toggles it on
-     touch devices, and it dismisses on outside tap or scroll. ---------- */
+  /* ---------- Shared safety-dot tooltip ---------- */
   const sharedTooltip = document.getElementById('tpx-stg-shared-tooltip');
   const isTouchPrimary = window.matchMedia('(hover: none)').matches;
 
   function positionTooltip(target) {
+    if (!sharedTooltip) return;
     const rect = target.getBoundingClientRect();
     const tipRect = sharedTooltip.getBoundingClientRect();
     let left = rect.left + rect.width / 2 - tipRect.width / 2;
@@ -353,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showTooltip(target) {
+    if (!sharedTooltip) return;
     const text = target.getAttribute('data-tooltip');
     if (!text) return;
     sharedTooltip.textContent = text;
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function hideTooltip() {
-    sharedTooltip.classList.remove('tpx-stg-show');
+    if (sharedTooltip) sharedTooltip.classList.remove('tpx-stg-show');
   }
 
   document.querySelectorAll('.tpx-stg-safety-dot[data-tooltip]').forEach(function (dot) {
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       dot.addEventListener('click', function (e) {
         e.stopPropagation();
-        const alreadyShown = sharedTooltip.classList.contains('tpx-stg-show') &&
+        const alreadyShown = sharedTooltip && sharedTooltip.classList.contains('tpx-stg-show') &&
           sharedTooltip.textContent === dot.getAttribute('data-tooltip');
         hideTooltip();
         if (!alreadyShown) showTooltip(dot);
@@ -389,83 +389,86 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.tpx-stg-preview-panel.is-open').forEach(function (panel) {
       panel.classList.remove('is-open');
       const key = panel.dataset.key;
-      const btn = grid.querySelector('.tpx-stg-preview-btn[data-key="' + key + '"]');
+      const btn = grid ? grid.querySelector('.tpx-stg-preview-btn[data-key="' + key + '"]') : null;
       const card = document.getElementById('tpx-stg-card-' + key);
       if (btn) btn.classList.remove('tpx-stg-preview-active');
       if (card) card.classList.remove('tpx-stg-preview-is-open');
     });
   });
 
-  // ---- Card copy / download / preview toggle (event delegation on the static grid) ----
-  grid.addEventListener('click', function (e) {
-    const copyBtn = e.target.closest('.tpx-stg-copy-btn');
-    const dlBtn = e.target.closest('.tpx-stg-download-btn');
-    const previewBtn = e.target.closest('.tpx-stg-preview-btn');
-    const tabBtn = e.target.closest('.tpx-stg-preview-tab');
+  if (grid) {
+    grid.addEventListener('click', function (e) {
+      const copyBtn = e.target.closest('.tpx-stg-copy-btn');
+      const dlBtn = e.target.closest('.tpx-stg-download-btn');
+      const previewBtn = e.target.closest('.tpx-stg-preview-btn');
+      const tabBtn = e.target.closest('.tpx-stg-preview-tab');
 
-    if (previewBtn) {
-      const key = previewBtn.dataset.key;
-      const panel = document.getElementById('tpx-stg-preview-' + key);
-      const outerCard = document.getElementById('tpx-stg-card-' + key);
-      if (panel) {
-        const willOpen = !panel.classList.contains('is-open');
-        panel.classList.toggle('is-open', willOpen);
-        previewBtn.classList.toggle('tpx-stg-preview-active', willOpen);
-        if (outerCard) outerCard.classList.toggle('tpx-stg-preview-is-open', willOpen);
+      if (previewBtn) {
+        const key = previewBtn.dataset.key;
+        const panel = document.getElementById('tpx-stg-preview-' + key);
+        const outerCard = document.getElementById('tpx-stg-card-' + key);
+        if (panel) {
+          const willOpen = !panel.classList.contains('is-open');
+          panel.classList.toggle('is-open', willOpen);
+          previewBtn.classList.toggle('tpx-stg-preview-active', willOpen);
+          if (outerCard) outerCard.classList.toggle('tpx-stg-preview-is-open', willOpen);
+        }
+        return;
       }
-      return;
-    }
 
-    if (tabBtn) {
-      const panel = tabBtn.closest('.tpx-stg-preview-panel');
-      const platform = tabBtn.dataset.platform;
-      panel.querySelectorAll('.tpx-stg-preview-tab').forEach(function (t) {
-        t.classList.toggle('is-active', t === tabBtn);
-      });
-      panel.querySelectorAll('.tpx-stg-pv-view').forEach(function (v) {
-        v.hidden = v.dataset.view !== platform;
-      });
-      return;
-    }
+      if (tabBtn) {
+        const panel = tabBtn.closest('.tpx-stg-preview-panel');
+        const platform = tabBtn.dataset.platform;
+        if (panel) {
+          panel.querySelectorAll('.tpx-stg-preview-tab').forEach(function (t) {
+            t.classList.toggle('is-active', t === tabBtn);
+          });
+          panel.querySelectorAll('.tpx-stg-pv-view').forEach(function (v) {
+            v.hidden = v.dataset.view !== platform;
+          });
+        }
+        return;
+      }
 
-    if (copyBtn) {
-      const key = copyBtn.dataset.key;
-      const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
-      const value = body.textContent;
-      if (!value || body.classList.contains('tpx-stg-placeholder')) return;
+      if (copyBtn) {
+        const key = copyBtn.dataset.key;
+        const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
+        const value = body ? body.textContent : '';
+        if (!value || (body && body.classList.contains('tpx-stg-placeholder'))) return;
 
-      const card = document.getElementById('tpx-stg-card-' + key);
-      const styleName = card ? card.querySelector('.tpx-stg-card-title').textContent : 'Text';
+        const card = document.getElementById('tpx-stg-card-' + key);
+        const styleName = card ? card.querySelector('.tpx-stg-card-title').textContent : 'Text';
 
-      navigator.clipboard.writeText(value).then(function () {
-        copyBtn.innerHTML = ICON_CHECK;
-        copyBtn.classList.add('tpx-stg-copied');
-        announce(styleName + ' copied');
-        setTimeout(function () {
-          copyBtn.innerHTML = ICON_COPY;
-          copyBtn.classList.remove('tpx-stg-copied');
-        }, 1500);
-      }).catch(function () {
-        announce('Could not copy — check clipboard permission');
-      });
-    }
+        navigator.clipboard.writeText(value).then(function () {
+          copyBtn.innerHTML = ICON_CHECK;
+          copyBtn.classList.add('tpx-stg-copied');
+          announce(styleName + ' copied');
+          setTimeout(function () {
+            copyBtn.innerHTML = ICON_COPY;
+            copyBtn.classList.remove('tpx-stg-copied');
+          }, 1500);
+        }).catch(function () {
+          announce('Could not copy — check clipboard permission');
+        });
+      }
 
-    if (dlBtn) {
-      const key = dlBtn.dataset.key;
-      const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
-      const value = body.textContent;
-      if (!value || body.classList.contains('tpx-stg-placeholder')) return;
+      if (dlBtn) {
+        const key = dlBtn.dataset.key;
+        const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
+        const value = body ? body.textContent : '';
+        if (!value || (body && body.classList.contains('tpx-stg-placeholder'))) return;
 
-      const blob = new Blob([value], { type: 'text/plain;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'toolpx-' + key + '-' + getDate() + '.txt';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    }
-  });
+        const blob = new Blob([value], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'toolpx-' + key + '-' + getDate() + '.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      }
+    });
+  }
 
   function getDate() {
     const d = new Date();
@@ -473,51 +476,67 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function announce(msg) {
+    if (!announcer) return;
     announcer.textContent = '';
-    // Re-set on next frame so repeated identical messages still get announced
     requestAnimationFrame(function () {
       announcer.textContent = msg;
     });
   }
 
   // ---- Footer actions ----
-  document.getElementById('tpx-stg-btn-paste').addEventListener('click', function () {
-    navigator.clipboard.readText().then(function (t) { ta.value += t; render(); ta.focus(); }).catch(function(){ ta.focus(); });
-  });
-  document.getElementById('tpx-stg-btn-clear').addEventListener('click', function () {
-    ta.value = ''; render(); ta.focus();
-  });
-  document.getElementById('tpx-stg-btn-copy').addEventListener('click', function () {
-    if (!ta.value.trim()) return;
-    const btn = this;
-    navigator.clipboard.writeText(ta.value).then(function () {
-      btn.innerHTML = ICON_CHECK;
-      btn.classList.add('tpx-stg-copied');
-      announce('Input copied');
-      setTimeout(function () {
-        btn.innerHTML = ICON_COPY;
-        btn.classList.remove('tpx-stg-copied');
-      }, 1500);
-    }).catch(function () {
-      announce('Could not copy — check clipboard permission');
+  const btnPaste = document.getElementById('tpx-stg-btn-paste');
+  if (btnPaste) {
+    btnPaste.addEventListener('click', function () {
+      navigator.clipboard.readText().then(function (t) { if (ta) { ta.value += t; render(); ta.focus(); } }).catch(function(){ if (ta) ta.focus(); });
     });
-  });
-  document.getElementById('tpx-stg-btn-upload').addEventListener('click', function () {
-    document.getElementById('tpx-stg-file-uploader').click();
-  });
-  document.getElementById('tpx-stg-file-uploader').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (ext === 'txt') {
-      const reader = new FileReader();
-      reader.onload = function (evt) { ta.value = evt.target.result; render(); };
-      reader.readAsText(file);
-    } else {
-      announce('DOCX parsing uses Mammoth.js — wire up as in Word Counter');
-    }
-    this.value = '';
-  });
+  }
+
+  const btnClear = document.getElementById('tpx-stg-btn-clear');
+  if (btnClear) {
+    btnClear.addEventListener('click', function () {
+      if (ta) { ta.value = ''; render(); ta.focus(); }
+    });
+  }
+
+  const btnCopy = document.getElementById('tpx-stg-btn-copy');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', function () {
+      if (!ta || !ta.value.trim()) return;
+      const btn = this;
+      navigator.clipboard.writeText(ta.value).then(function () {
+        btn.innerHTML = ICON_CHECK;
+        btn.classList.add('tpx-stg-copied');
+        announce('Input copied');
+        setTimeout(function () {
+          btn.innerHTML = ICON_COPY;
+          btn.classList.remove('tpx-stg-copied');
+        }, 1500);
+      }).catch(function () {
+        announce('Could not copy — check clipboard permission');
+      });
+    });
+  }
+
+  const btnUpload = document.getElementById('tpx-stg-btn-upload');
+  const fileUploader = document.getElementById('tpx-stg-file-uploader');
+  if (btnUpload && fileUploader) {
+    btnUpload.addEventListener('click', function () {
+      fileUploader.click();
+    });
+    fileUploader.addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'txt') {
+        const reader = new FileReader();
+        reader.onload = function (evt) { if (ta) { ta.value = evt.target.result; render(); } };
+        reader.readAsText(file);
+      } else {
+        announce('DOCX parsing uses Mammoth.js — wire up as in Word Counter');
+      }
+      this.value = '';
+    });
+  }
 
   render();
 });
