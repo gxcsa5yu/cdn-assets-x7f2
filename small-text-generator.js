@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const ta = document.getElementById('tpx-stg-input');
   const grid = document.getElementById('tpx-stg-fonts-grid');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
+  const heroReaction = document.getElementById('tpx-stg-hero-reaction');
 
   // Only these keys render live on every keystroke (the ones visible by default,
   // before "Show More Styles" is expanded). Hidden styles are computed once,
@@ -215,6 +216,27 @@ document.addEventListener('DOMContentLoaded', function () {
     { chars: 220, pct: 85 }
   ];
 
+  // Reaction copy shown above the meter — keyed to the same breakpoints so the
+  // line changes the instant a new platform limit is crossed.
+  const REACTIONS = [
+    { chars: 0,   text: 'start typing, watch it glow up' },
+    { chars: 60,  text: 'this is giving main character energy' },
+    { chars: 101, text: 'facebook bio: locked in' },
+    { chars: 150, text: 'still got room on ig' },
+    { chars: 160, text: 'x is happy, keep going' },
+    { chars: 190, text: 'discord bio: maxed and thriving' },
+    { chars: 200, text: 'reddit-ready, no notes' },
+    { chars: 220, text: 'linkedin about section: certified essay' }
+  ];
+
+  function reactionFor(chars) {
+    let current = REACTIONS[0].text;
+    for (const r of REACTIONS) {
+      if (chars >= r.chars) current = r.text;
+    }
+    return current;
+  }
+
   function interpolatePct(chars) {
     for (let i = 0; i < CHAR_BREAKPOINTS.length - 1; i++) {
       const a = CHAR_BREAKPOINTS[i];
@@ -248,7 +270,8 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
-    toggleNode('node-bl', words >= 1500);
+
+    if (heroReaction) heroReaction.textContent = reactionFor(chars);
   }
 
   // ---- Cache DOM refs per style key once (avoids repeated querySelectorAll on every keystroke) ----
@@ -267,10 +290,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
       if (isEmpty) {
-        refs.body.textContent = 'Type something to start';
+        refs.body.textContent = 'start typing, watch it glow up';
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
+        refs.previewBios.forEach(function (el) { el.textContent = 'you\u2019ll see it here'; });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
