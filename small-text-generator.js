@@ -197,29 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* =========================================================
-     NEON GLOW THEME HOOKS — additive only, doesn't touch any
-     logic above. Respects prefers-reduced-motion. Safe to
-     delete this whole block to fall back to the plain build.
-     ========================================================= */
-  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const GLOW_COLORS = ['#7c3aed', '#d946ef', '#00e5ff'];
-
-  function spawnBurst(el) {
-    if (REDUCE_MOTION || !el) return;
-    for (let i = 0; i < 6; i++) {
-      const spark = document.createElement('span');
-      spark.className = 'tpx-stg-spark';
-      const angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.4;
-      const dist = 16 + Math.random() * 10;
-      spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-      spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-      spark.style.setProperty('--dot-color', GLOW_COLORS[i % GLOW_COLORS.length]);
-      el.appendChild(spark);
-      setTimeout(function () { spark.remove(); }, 500);
-    }
-  }
-
-  /* =========================================================
      TRACK / NEEDLE / NODE-POINT LOGIC
      Breakpoints mirror the six node points exactly as placed
      in the markup (101c/15%, 150c/29%, 160c/43%, 190c/57%,
@@ -458,7 +435,6 @@ document.addEventListener('DOMContentLoaded', function () {
       navigator.clipboard.writeText(value).then(function () {
         copyBtn.innerHTML = ICON_CHECK;
         copyBtn.classList.add('tpx-stg-copied');
-        spawnBurst(copyBtn);
         announce(styleName + ' copied');
         setTimeout(function () {
           copyBtn.innerHTML = ICON_COPY;
@@ -512,7 +488,6 @@ document.addEventListener('DOMContentLoaded', function () {
     navigator.clipboard.writeText(ta.value).then(function () {
       btn.innerHTML = ICON_CHECK;
       btn.classList.add('tpx-stg-copied');
-      spawnBurst(btn);
       announce('Input copied');
       setTimeout(function () {
         btn.innerHTML = ICON_COPY;
@@ -538,23 +513,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     this.value = '';
   });
-
-  /* ---------- Stat value pulse on change (additive, decoupled via MutationObserver) ---------- */
-  if (!REDUCE_MOTION) {
-    ['tpx-stg-val-words', 'tpx-stg-val-chars', 'tpx-stg-val-chars-ns'].forEach(function (id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      let pulseTimeout = null;
-      const observer = new MutationObserver(function () {
-        el.classList.remove('tpx-stg-pulse');
-        void el.offsetWidth; // restart animation even on repeated identical mutations
-        el.classList.add('tpx-stg-pulse');
-        clearTimeout(pulseTimeout);
-        pulseTimeout = setTimeout(function () { el.classList.remove('tpx-stg-pulse'); }, 350);
-      });
-      observer.observe(el, { characterData: true, childList: true, subtree: true });
-    });
-  }
 
   render();
 });
