@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const ta = document.getElementById('tpx-stg-input');
   const grid = document.getElementById('tpx-stg-fonts-grid');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
-  const heroReaction = document.getElementById('tpx-stg-hero-reaction');
 
   // Only these keys render live on every keystroke (the ones visible by default,
   // before "Show More Styles" is expanded). Hidden styles are computed once,
@@ -198,6 +197,29 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* =========================================================
+     NEON GLOW THEME HOOKS — additive only, doesn't touch any
+     logic above. Respects prefers-reduced-motion. Safe to
+     delete this whole block to fall back to the plain build.
+     ========================================================= */
+  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const GLOW_COLORS = ['#7c3aed', '#d946ef', '#00e5ff'];
+
+  function spawnBurst(el) {
+    if (REDUCE_MOTION || !el) return;
+    for (let i = 0; i < 6; i++) {
+      const spark = document.createElement('span');
+      spark.className = 'tpx-stg-spark';
+      const angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.4;
+      const dist = 16 + Math.random() * 10;
+      spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      spark.style.setProperty('--dot-color', GLOW_COLORS[i % GLOW_COLORS.length]);
+      el.appendChild(spark);
+      setTimeout(function () { spark.remove(); }, 500);
+    }
+  }
+
+  /* =========================================================
      TRACK / NEEDLE / NODE-POINT LOGIC
      Breakpoints mirror the six node points exactly as placed
      in the markup (101c/15%, 150c/29%, 160c/43%, 190c/57%,
@@ -215,27 +237,6 @@ document.addEventListener('DOMContentLoaded', function () {
     { chars: 200, pct: 71 },
     { chars: 220, pct: 85 }
   ];
-
-  // Reaction copy shown above the meter — keyed to the same breakpoints so the
-  // line changes the instant a new platform limit is crossed.
-  const REACTIONS = [
-    { chars: 0,   text: 'start typing, watch it glow up' },
-    { chars: 60,  text: 'this is giving main character energy' },
-    { chars: 101, text: 'facebook bio: locked in' },
-    { chars: 150, text: 'still got room on ig' },
-    { chars: 160, text: 'x is happy, keep going' },
-    { chars: 190, text: 'discord bio: maxed and thriving' },
-    { chars: 200, text: 'reddit-ready, no notes' },
-    { chars: 220, text: 'linkedin about section: certified essay' }
-  ];
-
-  function reactionFor(chars) {
-    let current = REACTIONS[0].text;
-    for (const r of REACTIONS) {
-      if (chars >= r.chars) current = r.text;
-    }
-    return current;
-  }
 
   function interpolatePct(chars) {
     for (let i = 0; i < CHAR_BREAKPOINTS.length - 1; i++) {
@@ -270,8 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
-
-    if (heroReaction) heroReaction.textContent = reactionFor(chars);
+    toggleNode('node-bl', words >= 1500);
   }
 
   // ---- Cache DOM refs per style key once (avoids repeated querySelectorAll on every keystroke) ----
@@ -290,10 +290,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
       if (isEmpty) {
-        refs.body.textContent = 'start typing, watch it glow up';
+        refs.body.textContent = 'Type something to start';
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) { el.textContent = 'you\u2019ll see it here'; });
+        refs.previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
@@ -458,6 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
       navigator.clipboard.writeText(value).then(function () {
         copyBtn.innerHTML = ICON_CHECK;
         copyBtn.classList.add('tpx-stg-copied');
+        spawnBurst(copyBtn);
         announce(styleName + ' copied');
         setTimeout(function () {
           copyBtn.innerHTML = ICON_COPY;
@@ -511,6 +512,7 @@ document.addEventListener('DOMContentLoaded', function () {
     navigator.clipboard.writeText(ta.value).then(function () {
       btn.innerHTML = ICON_CHECK;
       btn.classList.add('tpx-stg-copied');
+      spawnBurst(btn);
       announce('Input copied');
       setTimeout(function () {
         btn.innerHTML = ICON_COPY;
@@ -536,6 +538,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     this.value = '';
   });
+
+  /* ---------- Stat value pulse on change (additive, decoupled via MutationObserver) ---------- */
+  if (!REDUCE_MOTION) {
+    ['tpx-stg-val-words', 'tpx-stg-val-chars', 'tpx-stg-val-chars-ns'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let pulseTimeout = null;
+      const observer = new MutationObserver(function () {
+        el.classList.remove('tpx-stg-pulse');
+        void el.offsetWidth; // restart animation even on repeated identical mutations
+        el.classList.add('tpx-stg-pulse');
+        clearTimeout(pulseTimeout);
+        pulseTimeout = setTimeout(function () { el.classList.remove('tpx-stg-pulse'); }, 350);
+      });
+      observer.observe(el, { characterData: true, childList: true, subtree: true });
+    });
+  }
 
   render();
 });
