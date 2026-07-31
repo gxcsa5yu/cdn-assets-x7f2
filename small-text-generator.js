@@ -306,12 +306,32 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-bl', words >= 1500);
   }
 
+  /* =========================================================
+     PLACEHOLDER SAMPLE (shown by default in each card body)
+     ========================================================= */
+  const PLACEHOLDER_SAMPLE = 'Toolpx';
+
   const styleRefs = {};
   function buildStyleRefs(key) {
+    const fn = STYLE_FNS[key];
+    const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
+
+    // Compute the styled placeholder ONCE at build time so the empty-state
+    // render never has to re-run the Unicode mapping function on input events.
+    const placeholderText = fn(PLACEHOLDER_SAMPLE);
+    const previewPlaceholders = {};
+    previewBios.forEach(function (el) {
+      const view = el.closest('.tpx-stg-pv-view');
+      const platform = view ? view.dataset.view : null;
+      previewPlaceholders[platform] = truncateForPlatform(placeholderText, PREVIEW_CHAR_LIMITS[platform]);
+    });
+
     styleRefs[key] = {
       body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-stg-card-' + key),
-      previewBios: grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]')
+      previewBios: previewBios,
+      placeholderText: placeholderText,
+      previewPlaceholders: previewPlaceholders
     };
   }
 
@@ -350,10 +370,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const refs = styleRefs[key];
       if (!refs || !refs.body) return;
       if (isEmpty) {
-        refs.body.textContent = 'Type something to start';
+        // Use the cached, pre-styled placeholder instead of recomputing fn() every render.
+        refs.body.textContent = refs.placeholderText;
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
-        refs.previewBios.forEach(function (el) { el.textContent = 'Type something to see it here'; });
+        refs.previewBios.forEach(function (el) {
+          const view = el.closest('.tpx-stg-pv-view');
+          const platform = view ? view.dataset.view : null;
+          el.textContent = refs.previewPlaceholders[platform];
+        });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
