@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-preview-tabgroup">' +
               '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
               '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-x') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="twitter" title="Twitter" aria-label="Preview on Twitter">' + iconUse('icon-platform-twitter') + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
