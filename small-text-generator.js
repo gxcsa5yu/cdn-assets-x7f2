@@ -299,13 +299,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const pct = Math.max(0, Math.min(interpolatePct(chars), 100));
     document.getElementById('tpx-timeline-progress').style.width = pct + '%';
     document.getElementById('tpx-timeline-needle').style.left = pct + '%';
-    toggleNode('node-ig', chars >= 101);
-    toggleNode('node-fb', chars >= 150);
+    toggleNode('node-fb', chars >= 101);
+    toggleNode('node-ig', chars >= 150);
     toggleNode('node-tw', chars >= 160);
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
-    toggleNode('node-bl', words >= 1500);
   }
 
   /* =========================================================
