@@ -224,11 +224,11 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="x" hidden>' +
               '<div class="tpx-stg-pv-x-cover"></div>' +
               '<div class="tpx-stg-pv-x-body">' +
-                '<div class="tpx-stg-pv-x-top-actions">' +
-                  '<div class="tpx-stg-pv-x-icon-btn"><i class="ti ti-bell"></i></div>' +
-                  '<button type="button" class="tpx-stg-pv-x-follow-btn">Follow</button>' +
-                '</div>' +
                 '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-stg-pv-x-top-actions">' +
+                  '<div class="tpx-stg-pv-x-icon-btn" aria-label="Notifications">' + iconUse('icon-bell-plus') + '</div>' +
+                  '<button type="button" class="tpx-stg-pv-x-follow-btn">' + iconUse('icon-user-plus') + '<span>Follow</span></button>' +
+                '</div>' +
                 '<div class="tpx-stg-pv-x-name">Toolpx <span class="tpx-stg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
                 '<div class="tpx-stg-pv-x-handle">@toolpx</div>' +
                 '<div class="tpx-stg-pv-x-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-preview-tabgroup">' +
               '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
               '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="twitter" title="Twitter" aria-label="Preview on Twitter">' + iconUse('icon-platform-twitter') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
