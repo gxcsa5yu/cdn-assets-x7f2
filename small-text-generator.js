@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const SUPERSCRIPT = { a:'ᵃ',b:'ᵇ',c:'ᶜ',d:'ᵈ',e:'ᵉ',f:'ᶠ',g:'ᵍ',h:'ʰ',i:'ⁱ',j:'ʲ',k:'ᵏ',l:'ˡ',m:'ᵐ',n:'ⁿ',o:'ᵒ',p:'ᵖ',r:'ʳ',s:'ˢ',t:'ᵗ',u:'ᵘ',v:'ᵛ',w:'ʷ',x:'ˣ',y:'ʸ',z:'ᶻ',
     '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾' };
 
-  const SUBSCRIPT = { a:'ₐ',e:'ₑ',h:'ₕ',i:'ᵢ',j:'ⱼ',k:'ₖ',l:'ₗ',m:'ₘ',n:'ₙ',o:'ₒ',p:'ₚ',r:'ᵣ',s:'ₛ',t:'ₜ',u:'ₔ',v:'₥',x:'ₓ',
+  const SUBSCRIPT = { a:'ₐ',e:'ₑ',h:'ₕ',i:'ᵢ',j:'ⱼ',k:'ₖ',l:'ₗ',m:'ₘ',n:'ₙ',o:'ₒ',p:'ₚ',r:'ᵣ',s:'ₛ',t:'ₜ',u:'ᵤ',v:'ᵥ',x:'ₓ',
     '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','+':'₊','-':'₋','=':'₌','(':'₍',')':'₎' };
 
   const UPSIDE_LOWER = { a:'ɐ',b:'q',c:'ɔ',d:'p',e:'ǝ',f:'ɟ',g:'ƃ',h:'ɥ',i:'ᴉ',j:'ɾ',k:'ʞ',l:'l',m:'ɯ',n:'u',o:'o',p:'d',q:'b',r:'ɹ',s:'s',t:'ʇ',u:'n',v:'ʌ',w:'ʍ',x:'x',y:'ʎ',z:'z' };
@@ -129,40 +129,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* =========================================================
-     STYLE SCALE MAP
-     ========================================================= */
-  const STYLE_SCALE = {
-    default: 1,
-
-    smallcaps: 1.05,
-    superscript: 1.18,
-    subscript: 1.18,
-
-    bold: 1,
-    smalltext: 1.18,
-
-    upsidedown: 1,
-    backwards: 1,
-    updown: 1,
-
-    monoupper: 0.98,
-    mathsans: 0.98,
-    mathstyle: 0.98,
-
-    bubbles: 0.93,
-    lightsq: 0.89,
-    darkbubbles: 0.88,
-    darksq: 0.88,
-
-    flourish: 0.95,
-    fraktur: 0.91,
-    script: 0.96,
-
-    funky: 1
-  };
-
-  /* =========================================================
      STYLE CONFIG
+
+     "size" is a multiplier applied to the base card font-size
+     via a CSS variable (--tpx-stg-scale). It is set ONCE when
+     the card HTML is built (cardTemplate), not on every render,
+     so it costs nothing during typing.
+
+     1    = normal / default size
+     >1   = render bigger (use for glyphs that look small, e.g. superscript/subscript)
+     <1   = render smaller (use for glyphs that look oversized, e.g. squared/bubbled blocks)
+
+     To adjust a style's visual size later, just change its
+     "size" number below — nothing else needs to change.
      ========================================================= */
   const SAFETY_TOOLTIPS = {
     safe: 'Safe everywhere',
@@ -171,26 +150,26 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   const STYLE_DEFS = [
-    { key: 'smallcaps',   title: 'Small Caps',        safety: 'safe', group: 'default', fn: t => mapLookup(t, SMALLCAPS) },
-    { key: 'superscript', title: 'Superscript',       safety: 'warn', group: 'default', fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'subscript',   title: 'Subscript',         safety: 'risk', group: 'default', fn: t => mapLookup(t, SUBSCRIPT) },
+    { key: 'smallcaps',   title: 'Small Caps',        safety: 'safe', group: 'default', size: 1.05, fn: t => mapLookup(t, SMALLCAPS) },
+    { key: 'superscript', title: 'Superscript',       safety: 'warn', group: 'default', size: 1.15, fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'subscript',   title: 'Subscript',         safety: 'risk', group: 'default', size: 1.15, fn: t => mapLookup(t, SUBSCRIPT) },
 
-    { key: 'bold',        title: 'Bold',               safety: 'safe', group: 'extra', fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'smalltext',   title: 'Small Text',         safety: 'safe', group: 'extra', fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'upsidedown',  title: 'Upside Down',        safety: 'safe', group: 'extra', fn: upsideDown },
-    { key: 'backwards',   title: 'Backwards',          safety: 'safe', group: 'extra', fn: t => t.split('').reverse().join('') },
-    { key: 'updown',      title: 'Up and Down',        safety: 'safe', group: 'extra', fn: upAndDown },
-    { key: 'monoupper',   title: 'Mono Upper',         safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
-    { key: 'mathsans',    title: 'Math Sans',          safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
-    { key: 'mathstyle',   title: 'Math Style',         safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bubbles',     title: 'Bubbles',            safety: 'warn', group: 'extra', fn: bubbles },
-    { key: 'lightsq',     title: 'Light Squares',      safety: 'warn', group: 'extra', fn: lightSquares },
-    { key: 'flourish',    title: 'Flourish',           safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'fraktur',     title: 'Fraktur',            safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
-    { key: 'script',      title: 'Script / Cursive',   safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'darkbubbles', title: 'Dark Bubbles',       safety: 'risk', group: 'extra', fn: darkBubbles },
-    { key: 'darksq',      title: 'Dark Squares',       safety: 'risk', group: 'extra', fn: darkSquares },
-    { key: 'funky',       title: 'Funky',              safety: 'risk', group: 'extra', fn: funky }
+    { key: 'bold',        title: 'Bold',               safety: 'safe', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'smalltext',   title: 'Small Text',         safety: 'safe', group: 'extra', size: 1.15, fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'upsidedown',  title: 'Upside Down',        safety: 'safe', group: 'extra', size: 1,    fn: upsideDown },
+    { key: 'backwards',   title: 'Backwards',          safety: 'safe', group: 'extra', size: 1,    fn: t => t.split('').reverse().join('') },
+    { key: 'updown',      title: 'Up and Down',        safety: 'safe', group: 'extra', size: 1,    fn: upAndDown },
+    { key: 'monoupper',   title: 'Mono Upper',         safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'mathsans',    title: 'Math Sans',          safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
+    { key: 'mathstyle',   title: 'Math Style',         safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'bubbles',     title: 'Bubbles',            safety: 'warn', group: 'extra', size: 0.95, fn: bubbles },
+    { key: 'lightsq',     title: 'Light Squares',      safety: 'warn', group: 'extra', size: 0.9,  fn: lightSquares },
+    { key: 'flourish',    title: 'Flourish',           safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'fraktur',     title: 'Fraktur',            safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
+    { key: 'script',      title: 'Script / Cursive',   safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'darkbubbles', title: 'Dark Bubbles',       safety: 'risk', group: 'extra', size: 0.9,  fn: darkBubbles },
+    { key: 'darksq',      title: 'Dark Squares',       safety: 'risk', group: 'extra', size: 0.9,  fn: darkSquares },
+    { key: 'funky',       title: 'Funky',              safety: 'risk', group: 'extra', size: 1,    fn: funky }
   ];
 
   const STYLE_FNS = {};
@@ -207,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function cardTemplate(def) {
     const tooltip = SAFETY_TOOLTIPS[def.safety];
     const key = def.key;
-    const scale = STYLE_SCALE[key] ?? STYLE_SCALE.default;
+    const scale = def.size || 1;
     return (
       '<div class="tpx-stg-font-card tpx-stg-card-empty" id="tpx-stg-card-' + key + '">' +
         '<div class="tpx-stg-card-left">' +
@@ -350,6 +329,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
 
+    // Compute the styled placeholder ONCE at build time so the empty-state
+    // render never has to re-run the Unicode mapping function on input events.
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
@@ -402,6 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const refs = styleRefs[key];
       if (!refs || !refs.body) return;
       if (isEmpty) {
+        // Use the cached, pre-styled placeholder instead of recomputing fn() every render.
         refs.body.textContent = refs.placeholderText;
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
