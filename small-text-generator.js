@@ -4,13 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const defaultStylesContainer = document.getElementById('tpx-stg-default-styles');
   const extraStyles = document.getElementById('tpx-stg-extra-styles');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
-
   let extraStylesRevealed = false;
 
   /* =========================================================
      CONVERSION ENGINE
      ========================================================= */
-
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
     let out = '';
     for (const ch of text) {
@@ -36,13 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const SMALLCAPS = { a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'ꞯ',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',y:'ʏ',z:'ᴢ' };
-
   const SUPERSCRIPT = { a:'ᵃ',b:'ᵇ',c:'ᶜ',d:'ᵈ',e:'ᵉ',f:'ᶠ',g:'ᵍ',h:'ʰ',i:'ⁱ',j:'ʲ',k:'ᵏ',l:'ˡ',m:'ᵐ',n:'ⁿ',o:'ᵒ',p:'ᵖ',r:'ʳ',s:'ˢ',t:'ᵗ',u:'ᵘ',v:'ᵛ',w:'ʷ',x:'ˣ',y:'ʸ',z:'ᶻ',
     '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾' };
-
   const SUBSCRIPT = { a:'ₐ',e:'ₑ',h:'ₕ',i:'ᵢ',j:'ⱼ',k:'ₖ',l:'ₗ',m:'ₘ',n:'ₙ',o:'ₒ',p:'ₚ',r:'ᵣ',s:'ₛ',t:'ₜ',u:'ᵤ',v:'ᵥ',x:'ₓ',
     '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','+':'₊','-':'₋','=':'₌','(':'₍',')':'₎' };
-
   const UPSIDE_LOWER = { a:'ɐ',b:'q',c:'ɔ',d:'p',e:'ǝ',f:'ɟ',g:'ƃ',h:'ɥ',i:'ᴉ',j:'ɾ',k:'ʞ',l:'l',m:'ɯ',n:'u',o:'o',p:'d',q:'b',r:'ɹ',s:'s',t:'ʇ',u:'n',v:'ʌ',w:'ʍ',x:'x',y:'ʎ',z:'z' };
   const UPSIDE_UPPER = { A:'∀',B:'𐐒',C:'Ɔ',D:'ᗡ',E:'Ǝ',F:'Ⅎ',G:'⅁',H:'H',I:'I',J:'ſ',K:'ʞ',L:'˥',M:'W',N:'N',O:'O',P:'Ԁ',Q:'Q',R:'ᴚ',S:'S',T:'⊥',U:'∩',V:'Λ',W:'M',X:'X',Y:'⅄',Z:'Z' };
   const UPSIDE_OTHER = { '0':'0','1':'Ɩ','2':'ᄅ','3':'Ɛ','4':'ㄣ','5':'ϛ','6':'9','7':'ㄥ','8':'8','9':'6','.':'˙',',':"'",'?':'¿','!':'¡',"'":',','"':'„','(' :')',')':'(','[':']',']':'[','{':'}','}':'{','<':'>','>':'<','&':'⅋','_':'‾' };
@@ -130,16 +125,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* =========================================================
      STYLE CONFIG
-
      "size" is a multiplier applied to the base card font-size
      via a CSS variable (--tpx-stg-scale). It is set ONCE when
      the card HTML is built (cardTemplate), not on every render,
      so it costs nothing during typing.
-
-     1    = normal / default size
-     >1   = render bigger (use for glyphs that look small, e.g. superscript/subscript)
-     <1   = render smaller (use for glyphs that look oversized, e.g. squared/bubbled blocks)
-
+     1 = normal / default size
+     >1 = render bigger (use for glyphs that look small, e.g. superscript/subscript)
+     <1 = render smaller (use for glyphs that look oversized, e.g. squared/bubbled blocks)
      To adjust a style's visual size later, just change its
      "size" number below — nothing else needs to change.
      ========================================================= */
@@ -150,32 +142,31 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   const STYLE_DEFS = [
-    { key: 'smallcaps',   title: 'Small Caps',        safety: 'safe', group: 'default', size: 1.05, fn: t => mapLookup(t, SMALLCAPS) },
-    { key: 'superscript', title: 'Superscript',       safety: 'warn', group: 'default', size: 1.15, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'subscript',   title: 'Subscript',         safety: 'risk', group: 'default', size: 1.15, fn: t => mapLookup(t, SUBSCRIPT) },
-
-    { key: 'bold',        title: 'Bold',               safety: 'safe', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'smalltext',   title: 'Small Text',         safety: 'safe', group: 'extra', size: 1.15, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'upsidedown',  title: 'Upside Down',        safety: 'safe', group: 'extra', size: 1,    fn: upsideDown },
-    { key: 'backwards',   title: 'Backwards',          safety: 'safe', group: 'extra', size: 1,    fn: t => t.split('').reverse().join('') },
-    { key: 'updown',      title: 'Up and Down',        safety: 'safe', group: 'extra', size: 1,    fn: upAndDown },
-    { key: 'monoupper',   title: 'Mono Upper',         safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
-    { key: 'mathsans',    title: 'Math Sans',          safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
-    { key: 'mathstyle',   title: 'Math Style',         safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bubbles',     title: 'Bubbles',            safety: 'warn', group: 'extra', size: 0.95, fn: bubbles },
-    { key: 'lightsq',     title: 'Light Squares',      safety: 'warn', group: 'extra', size: 0.9,  fn: lightSquares },
-    { key: 'flourish',    title: 'Flourish',           safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'fraktur',     title: 'Fraktur',            safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
-    { key: 'script',      title: 'Script / Cursive',   safety: 'warn', group: 'extra', size: 1,    fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'darkbubbles', title: 'Dark Bubbles',       safety: 'risk', group: 'extra', size: 0.9,  fn: darkBubbles },
-    { key: 'darksq',      title: 'Dark Squares',       safety: 'risk', group: 'extra', size: 0.9,  fn: darkSquares },
-    { key: 'funky',       title: 'Funky',              safety: 'risk', group: 'extra', size: 1,    fn: funky }
+    { key: 'smallcaps',    title: 'Small Caps',        safety: 'safe', group: 'default', size: 1.05, fn: t => mapLookup(t, SMALLCAPS) },
+    { key: 'superscript',  title: 'Superscript',       safety: 'warn', group: 'default', size: 1.25, fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'subscript',    title: 'Subscript',         safety: 'risk', group: 'default', size: 1.25, fn: t => mapLookup(t, SUBSCRIPT) },
+    { key: 'bold',         title: 'Bold',              safety: 'safe', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'smalltext',    title: 'Small Text',        safety: 'safe', group: 'extra',   size: 1.25, fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'upsidedown',   title: 'Upside Down',       safety: 'safe', group: 'extra',   size: 1.00, fn: upsideDown },
+    { key: 'backwards',    title: 'Backwards',         safety: 'safe', group: 'extra',   size: 1.00, fn: t => t.split('').reverse().join('') },
+    { key: 'updown',       title: 'Up and Down',       safety: 'safe', group: 'extra',   size: 1.00, fn: upAndDown },
+    { key: 'monoupper',    title: 'Mono Upper',        safety: 'warn', group: 'extra',   size: 0.95, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'mathsans',     title: 'Math Sans',         safety: 'warn', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
+    { key: 'mathstyle',    title: 'Math Style',        safety: 'warn', group: 'extra',   size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'bubbles',      title: 'Bubbles',           safety: 'warn', group: 'extra',   size: 0.90, fn: bubbles },
+    { key: 'lightsq',      title: 'Light Squares',     safety: 'warn', group: 'extra',   size: 0.85, fn: lightSquares },
+    { key: 'flourish',     title: 'Flourish',          safety: 'warn', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'fraktur',      title: 'Fraktur',           safety: 'warn', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
+    { key: 'script',       title: 'Script / Cursive',  safety: 'warn', group: 'extra',   size: 1.05, fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'darkbubbles',  title: 'Dark Bubbles',      safety: 'risk', group: 'extra',   size: 0.85, fn: darkBubbles },
+    { key: 'darksq',       title: 'Dark Squares',      safety: 'risk', group: 'extra',   size: 0.85, fn: darkSquares },
+    { key: 'funky',        title: 'Funky',             safety: 'risk', group: 'extra',   size: 1.00, fn: funky }
   ];
 
   const STYLE_FNS = {};
   STYLE_DEFS.forEach(function (d) { STYLE_FNS[d.key] = d.fn; });
 
-  const ICON_COPY  = '<svg><use href="#icon-copy"></use></svg>';
+  const ICON_COPY = '<svg><use href="#icon-copy"></use></svg>';
   const ICON_CHECK = '<svg><use href="#icon-check"></use></svg>';
 
   function iconUse(id) {
@@ -274,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
      TRACK / NEEDLE / NODE-POINT LOGIC
      ========================================================= */
   const CHAR_BREAKPOINTS = [
-    { chars: 0,   pct: 0 },
+    { chars: 0, pct: 0 },
     { chars: 101, pct: 15 },
     { chars: 150, pct: 29 },
     { chars: 160, pct: 43 },
@@ -306,10 +297,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function updateTimeline(chars, words) {
     const pct = Math.max(0, Math.min(interpolatePct(chars), 100));
-
     document.getElementById('tpx-timeline-progress').style.width = pct + '%';
     document.getElementById('tpx-timeline-needle').style.left = pct + '%';
-
     toggleNode('node-ig', chars >= 101);
     toggleNode('node-fb', chars >= 150);
     toggleNode('node-tw', chars >= 160);
@@ -323,12 +312,11 @@ document.addEventListener('DOMContentLoaded', function () {
      PLACEHOLDER SAMPLE (shown by default in each card body)
      ========================================================= */
   const PLACEHOLDER_SAMPLE = 'Type something to start';
-
   const styleRefs = {};
+
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
-
     // Compute the styled placeholder ONCE at build time so the empty-state
     // render never has to re-run the Unicode mapping function on input events.
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
@@ -338,7 +326,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const platform = view ? view.dataset.view : null;
       previewPlaceholders[platform] = truncateForPlatform(placeholderText, PREVIEW_CHAR_LIMITS[platform]);
     });
-
     styleRefs[key] = {
       body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-stg-card-' + key),
@@ -415,13 +402,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
     const chars = text.replace(/\n/g, '').length;
     const charsNoSpaces = text.replace(/\s/g, '').length;
-
     document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
     document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
     document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
-
     updateTimeline(chars, words);
-
     const isEmpty = text.trim() === '';
     renderKeys(getActiveKeys(), text, isEmpty);
   }
@@ -479,19 +463,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
     if (dot) showTooltip(dot);
   });
+
   document.addEventListener('mouseout', function (e) {
     if (isTouchPrimary) return;
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
     if (dot) hideTooltip();
   });
+
   document.addEventListener('focusin', function (e) {
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
     if (dot) showTooltip(dot);
   });
+
   document.addEventListener('focusout', function (e) {
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
     if (dot) hideTooltip();
   });
+
   document.addEventListener('click', function (e) {
     if (!isTouchPrimary) { hideTooltip(); return; }
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
@@ -505,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     hideTooltip();
   });
+
   window.addEventListener('scroll', hideTooltip, true);
 
   document.addEventListener('keydown', function (e) {
@@ -534,11 +523,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!body) return;
     const value = body.textContent;
     if (!value || body.classList.contains('tpx-stg-placeholder')) return;
-
     const card = document.getElementById('tpx-stg-card-' + key);
     const styleName = card ? card.querySelector('.tpx-stg-card-title').textContent : 'Text';
     const copyBtn = grid.querySelector('.tpx-stg-copy-btn[data-key="' + key + '"]');
-
     navigator.clipboard.writeText(value).then(function () {
       if (copyBtn) flashCopied(copyBtn, styleName + ' copied');
       else announce(styleName + ' copied');
@@ -589,7 +576,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
       const value = body.textContent;
       if (!value || body.classList.contains('tpx-stg-placeholder')) return;
-
       const blob = new Blob([value], { type: 'text/plain;charset=utf-8' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -624,9 +610,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('tpx-stg-btn-paste').addEventListener('click', function () {
     navigator.clipboard.readText().then(function (t) { ta.value += t; render(); ta.focus(); }).catch(function () { ta.focus(); });
   });
+
   document.getElementById('tpx-stg-btn-clear').addEventListener('click', function () {
     ta.value = ''; render(); ta.focus();
   });
+
   document.getElementById('tpx-stg-btn-copy').addEventListener('click', function () {
     if (!ta.value.trim()) return;
     const btn = this;
@@ -636,9 +624,11 @@ document.addEventListener('DOMContentLoaded', function () {
       announce('Could not copy — check clipboard permission');
     });
   });
+
   document.getElementById('tpx-stg-btn-upload').addEventListener('click', function () {
     document.getElementById('tpx-stg-file-uploader').click();
   });
+
   document.getElementById('tpx-stg-file-uploader').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
