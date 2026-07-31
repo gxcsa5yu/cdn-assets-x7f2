@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
   /* =========================================================
      PLACEHOLDER SAMPLE (shown by default in each card body)
      ========================================================= */
-  const PLACEHOLDER_SAMPLE = 'Toolpx';
+  const PLACEHOLDER_SAMPLE = 'Type something to start';
 
   const styleRefs = {};
   function buildStyleRefs(key) {
