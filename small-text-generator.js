@@ -229,8 +229,10 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
           '</div>' +
           '<div class="tpx-stg-preview-tabbar">' +
-            '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
-            '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
+            '<div class="tpx-stg-preview-tabgroup">' +
+              '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</div>'
