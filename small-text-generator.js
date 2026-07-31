@@ -1,43 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
   const ta = document.getElementById('tpx-stg-input');
   const grid = document.getElementById('tpx-stg-fonts-grid');
+  const defaultStylesContainer = document.getElementById('tpx-stg-default-styles');
+  const extraStyles = document.getElementById('tpx-stg-extra-styles');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
 
-  // Only these keys render live on every keystroke (the ones visible by default,
-  // before "Show More Styles" is expanded). Hidden styles are computed once,
-  // the moment that section is revealed — not on every keystroke while unseen.
-  const DEFAULT_VISIBLE_KEYS = ['smallcaps', 'superscript', 'subscript'];
   let extraStylesRevealed = false;
 
-  /* ---------- Show More Styles toggle ---------- */
-  const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
-  const extraStyles = document.getElementById('tpx-stg-extra-styles');
-  if (moreStylesToggle && extraStyles) {
-    const moreStylesText = moreStylesToggle.querySelector('.tpx-stg-more-styles-text');
-    moreStylesToggle.addEventListener('click', function () {
-      const isExpanded = moreStylesToggle.getAttribute('aria-expanded') === 'true';
-      moreStylesToggle.setAttribute('aria-expanded', String(!isExpanded));
-      extraStyles.hidden = isExpanded;
-      if (moreStylesText) {
-        moreStylesText.textContent = isExpanded ? 'Show More Styles' : 'Show Less Styles';
-      }
-      if (!isExpanded && !extraStylesRevealed) {
-        extraStylesRevealed = true;
-        const text = ta.value;
-        const hiddenKeys = Object.keys(STYLE_FNS).filter(function (k) {
-          return DEFAULT_VISIBLE_KEYS.indexOf(k) === -1;
-        });
-        renderKeys(hiddenKeys, text, text.trim() === '');
-      }
-    });
-  }
-
   /* =========================================================
-     CONVERSION ENGINE — the only reason JS exists here: turning
-     typed text into unicode-mapped glyph variants. There's no
-     CSS/HTML way to remap characters, so this part must be JS.
-     The card markup itself is now static HTML above; JS only
-     fills in text content and wires up interactions.
+     CONVERSION ENGINE — turns typed text into unicode-mapped
+     glyph variants. No CSS/HTML way to remap characters, so
+     this part must be JS.
      ========================================================= */
 
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
@@ -64,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
-  // ---- Lookup tables ----
   const SMALLCAPS = { a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'ꞯ',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',y:'ʏ',z:'ᴢ' };
 
   const SUPERSCRIPT = { a:'ᵃ',b:'ᵇ',c:'ᶜ',d:'ᵈ',e:'ᵉ',f:'ᶠ',g:'ᵍ',h:'ʰ',i:'ⁱ',j:'ʲ',k:'ᵏ',l:'ˡ',m:'ᵐ',n:'ⁿ',o:'ᵒ',p:'ᵖ',r:'ʳ',s:'ˢ',t:'ᵗ',u:'ᵘ',v:'ᵛ',w:'ʷ',x:'ˣ',y:'ʸ',z:'ᶻ',
@@ -158,52 +130,125 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
-  // ---- Style registry: maps each card's data-key to its conversion function.
-  // Card markup (name/safety dot/layout) lives in the static HTML above —
-  // this object only supplies the transform logic. ----
-  const STYLE_FNS = {
-    bold:        t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}),
-    smallcaps:   t => mapLookup(t, SMALLCAPS),
-    smalltext:   t => mapLookup(t, SUPERSCRIPT),
-    upsidedown:  upsideDown,
-    backwards:   t => t.split('').reverse().join(''),
-    superscript: t => mapLookup(t, SUPERSCRIPT),
-    subscript:   t => mapLookup(t, SUBSCRIPT),
-    monoupper:   t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}),
-    mathsans:    t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}),
-    mathstyle:   t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h:'ℎ' }),
-    bubbles:     bubbles,
-    darkbubbles: darkBubbles,
-    lightsq:     lightSquares,
-    darksq:      darkSquares,
-    updown:      upAndDown,
-    funky:       funky,
-    flourish:    t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}),
-    fraktur:     t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C:'ℭ', H:'ℌ', I:'ℑ', R:'ℜ', Z:'ℨ' }),
-    script:      t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B:'ℬ', E:'ℰ', F:'ℱ', H:'ℋ', I:'ℐ', L:'ℒ', M:'ℳ', R:'ℛ', e:'ℯ', g:'ℊ', o:'ℴ' })
+  /* =========================================================
+     STYLE CONFIG — the single source of truth for every card:
+     which styles exist, what group they render in (default vs
+     "show more"), their safety rating, and their transform.
+     Adding a style is now a one-line addition here, not a
+     block of hand-written HTML.
+     ========================================================= */
+  const SAFETY_TOOLTIPS = {
+    safe: 'Safe everywhere',
+    warn: 'May not render on older devices',
+    risk: 'Often shows as boxes on some platforms'
   };
 
-  const ICON_COPY  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.412 .412 1.737 1.012"></path></svg>';
-  const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path></svg>';
+  const STYLE_DEFS = [
+    { key: 'smallcaps',   title: 'Small Caps',        safety: 'safe', group: 'default', fn: t => mapLookup(t, SMALLCAPS) },
+    { key: 'superscript', title: 'Superscript',       safety: 'warn', group: 'default', fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'subscript',   title: 'Subscript',         safety: 'risk', group: 'default', fn: t => mapLookup(t, SUBSCRIPT) },
+
+    { key: 'bold',        title: 'Bold',               safety: 'safe', group: 'extra', fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'smalltext',   title: 'Small Text',         safety: 'safe', group: 'extra', fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'upsidedown',  title: 'Upside Down',        safety: 'safe', group: 'extra', fn: upsideDown },
+    { key: 'backwards',   title: 'Backwards',          safety: 'safe', group: 'extra', fn: t => t.split('').reverse().join('') },
+    { key: 'updown',      title: 'Up and Down',        safety: 'safe', group: 'extra', fn: upAndDown },
+    { key: 'monoupper',   title: 'Mono Upper',         safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'mathsans',    title: 'Math Sans',          safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
+    { key: 'mathstyle',   title: 'Math Style',         safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'bubbles',     title: 'Bubbles',            safety: 'warn', group: 'extra', fn: bubbles },
+    { key: 'lightsq',     title: 'Light Squares',      safety: 'warn', group: 'extra', fn: lightSquares },
+    { key: 'flourish',    title: 'Flourish',           safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'fraktur',     title: 'Fraktur',            safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
+    { key: 'script',      title: 'Script / Cursive',   safety: 'warn', group: 'extra', fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'darkbubbles', title: 'Dark Bubbles',       safety: 'risk', group: 'extra', fn: darkBubbles },
+    { key: 'darksq',      title: 'Dark Squares',       safety: 'risk', group: 'extra', fn: darkSquares },
+    { key: 'funky',       title: 'Funky',              safety: 'risk', group: 'extra', fn: funky }
+  ];
+
+  const STYLE_FNS = {};
+  STYLE_DEFS.forEach(function (d) { STYLE_FNS[d.key] = d.fn; });
+
+  const ICON_COPY  = '<svg><use href="#icon-copy"></use></svg>';
+  const ICON_CHECK = '<svg><use href="#icon-check"></use></svg>';
+
+  function iconUse(id) {
+    return '<svg class="tpx-icon" aria-hidden="true"><use href="#' + id + '"></use></svg>';
+  }
+
+  // ---- Builds one card's full markup (main card + both platform previews) from a style def ----
+  function cardTemplate(def) {
+    const tooltip = SAFETY_TOOLTIPS[def.safety];
+    const key = def.key;
+    return (
+      '<div class="tpx-stg-font-card tpx-stg-card-empty" id="tpx-stg-card-' + key + '">' +
+        '<div class="tpx-stg-card-left">' +
+          '<div class="tpx-stg-card-header">' +
+            '<div class="tpx-stg-card-title-wrap">' +
+              '<span class="tpx-stg-safety-dot ' + def.safety + '" data-tooltip="' + tooltip + '" tabindex="0" role="img" aria-label="Compatibility: ' + tooltip + '"></span>' +
+              '<span class="tpx-stg-card-title">' + def.title + '</span>' +
+            '</div>' +
+            '<div class="tpx-stg-card-actions">' +
+              '<button type="button" class="tpx-stg-copy-btn" data-key="' + key + '" aria-label="Copy ' + def.title + ' text">' + iconUse('icon-copy') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-btn" data-key="' + key + '" aria-label="Preview ' + def.title + ' on social platforms" title="Preview on social platforms">' + iconUse('icon-preview') + '</button>' +
+              '<button type="button" class="tpx-stg-download-btn" data-key="' + key + '" aria-label="Download ' + def.title + ' text">' + iconUse('icon-download') + '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="tpx-stg-card-body tpx-stg-placeholder" data-key="' + key + '">Type something to start</div>' +
+        '</div>' +
+        '<div class="tpx-stg-preview-panel" id="tpx-stg-preview-' + key + '" data-key="' + key + '">' +
+          '<div class="tpx-stg-preview-stage">' +
+            '<div class="tpx-stg-pv-view tpx-stg-pv-ig" data-view="instagram">' +
+              '<div class="tpx-stg-pv-ig-top">' +
+                '<div class="tpx-stg-preview-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-stg-pv-ig-right">' +
+                  '<div class="tpx-stg-pv-ig-name">Toolpx</div>' +
+                  '<div class="tpx-stg-pv-ig-stats">' +
+                    '<div class="tpx-stg-pv-ig-stat"><b>128</b><span>posts</span></div>' +
+                    '<div class="tpx-stg-pv-ig-stat"><b>2,024</b><span>followers</span></div>' +
+                    '<div class="tpx-stg-pv-ig-stat"><b>75</b><span>following</span></div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="tpx-stg-pv-ig-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+              '<div class="tpx-stg-pv-ig-link">' + iconUse('icon-link') + '<span>toolpx.com</span><span class="tpx-stg-pv-ig-more">and 3 more</span></div>' +
+            '</div>' +
+            '<div class="tpx-stg-pv-view tpx-stg-pv-fb" data-view="facebook" hidden>' +
+              '<div class="tpx-stg-pv-fb-cover"></div>' +
+              '<div class="tpx-stg-pv-fb-body">' +
+                '<div class="tpx-stg-pv-fb-top">' +
+                  '<div class="tpx-stg-preview-avatar">' + iconUse('icon-person') + '</div>' +
+                  '<div class="tpx-stg-pv-fb-right">' +
+                    '<div class="tpx-stg-pv-fb-name">Toolpx <span class="tpx-stg-pv-fb-badge">' + iconUse('icon-badge-check') + '</span></div>' +
+                    '<div class="tpx-stg-pv-fb-stats"><b>17M</b> followers · <b>1</b> following · <b>1.5K</b> posts</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="tpx-stg-pv-fb-category">Page · Artist</div>' +
+                '<div class="tpx-stg-pv-fb-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="tpx-stg-preview-tabbar">' +
+            '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
+            '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
 
   // Real per-platform bio character caps — preview text is clipped to match what the platform actually allows
   const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101 };
 
   function truncateForPlatform(str, limit) {
     if (!limit) return str;
-    const chars = Array.from(str); // codepoint-safe, since styled text uses supplementary-plane glyphs
+    const chars = Array.from(str);
     if (chars.length <= limit) return str;
     return chars.slice(0, limit - 1).join('') + '…';
   }
 
   /* =========================================================
      TRACK / NEEDLE / NODE-POINT LOGIC
-     Breakpoints mirror the six node points exactly as placed
-     in the markup (101c/15%, 150c/29%, 160c/43%, 190c/57%,
-     200c/71%, 220c/85%), so the needle/fill lands precisely on a
-     node the instant the character count matches it. Past the
-     last node (220c) the same slope from the previous segment is
-     continued until the track reaches 100%.
      ========================================================= */
   const CHAR_BREAKPOINTS = [
     { chars: 0,   pct: 0 },
@@ -251,21 +296,55 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-bl', words >= 1500);
   }
 
-  // ---- Cache DOM refs per style key once (avoids repeated querySelectorAll on every keystroke) ----
+  // ---- Per-style DOM refs, populated as each group's cards are built ----
   const styleRefs = {};
-  Object.keys(STYLE_FNS).forEach(function (key) {
+  function buildStyleRefs(key) {
     styleRefs[key] = {
       body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-stg-card-' + key),
       previewBios: grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]')
     };
-  });
+  }
+
+  // ---- Builds and mounts every card in a group ("default" or "extra") into its container ----
+  function renderCardsForGroup(group, container) {
+    const defs = STYLE_DEFS.filter(function (d) { return d.group === group; });
+    container.innerHTML = defs.map(cardTemplate).join('');
+    defs.forEach(function (d) { buildStyleRefs(d.key); });
+    return defs.map(function (d) { return d.key; });
+  }
+
+  // Default-visible cards are built immediately; "extra" cards are built lazily
+  // the first time "Show More Styles" is opened, so a page with 100+ styles
+  // never pays for markup the visitor hasn't asked to see.
+  const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
+
+  /* ---------- Show More Styles toggle ---------- */
+  const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
+  if (moreStylesToggle && extraStyles) {
+    const moreStylesText = moreStylesToggle.querySelector('.tpx-stg-more-styles-text');
+    moreStylesToggle.addEventListener('click', function () {
+      const isExpanded = moreStylesToggle.getAttribute('aria-expanded') === 'true';
+      moreStylesToggle.setAttribute('aria-expanded', String(!isExpanded));
+      extraStyles.hidden = isExpanded;
+      if (moreStylesText) {
+        moreStylesText.textContent = isExpanded ? 'Show More Styles' : 'Show Less Styles';
+      }
+      if (!isExpanded && !extraStylesRevealed) {
+        extraStylesRevealed = true;
+        const extraKeys = renderCardsForGroup('extra', extraStyles);
+        const text = ta.value;
+        renderKeys(extraKeys, text, text.trim() === '');
+      }
+    });
+  }
 
   // ---- Renders only the given subset of style keys ----
   function renderKeys(keys, text, isEmpty) {
     keys.forEach(function (key) {
       const fn = STYLE_FNS[key];
       const refs = styleRefs[key];
+      if (!refs || !refs.body) return;
       if (isEmpty) {
         refs.body.textContent = 'Type something to start';
         refs.body.classList.add('tpx-stg-placeholder');
@@ -306,7 +385,6 @@ document.addEventListener('DOMContentLoaded', function () {
     renderKeys(getActiveKeys(), text, isEmpty);
   }
 
-  // ---- Instant render on input, throttled to one paint frame instead of a fixed debounce ----
   let renderScheduled = false;
   ta.addEventListener('input', function () {
     if (renderScheduled) return;
@@ -328,11 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ---------- Shared safety-dot tooltip ----------
-     Replaces the native `title` attribute (which doesn't work on touch
-     and is inconsistent across browsers) with a single positioned
-     tooltip: hover/focus reveals it on desktop, tap toggles it on
-     touch devices, and it dismisses on outside tap or scroll. ---------- */
+  /* ---------- Shared safety-dot tooltip ---------- */
   const sharedTooltip = document.getElementById('tpx-stg-shared-tooltip');
   const isTouchPrimary = window.matchMedia('(hover: none)').matches;
 
@@ -359,24 +433,39 @@ document.addEventListener('DOMContentLoaded', function () {
     sharedTooltip.classList.remove('tpx-stg-show');
   }
 
-  document.querySelectorAll('.tpx-stg-safety-dot[data-tooltip]').forEach(function (dot) {
-    if (!isTouchPrimary) {
-      dot.addEventListener('mouseenter', function () { showTooltip(dot); });
-      dot.addEventListener('mouseleave', hideTooltip);
-      dot.addEventListener('focus', function () { showTooltip(dot); });
-      dot.addEventListener('blur', hideTooltip);
-    } else {
-      dot.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const alreadyShown = sharedTooltip.classList.contains('tpx-stg-show') &&
-          sharedTooltip.textContent === dot.getAttribute('data-tooltip');
-        hideTooltip();
-        if (!alreadyShown) showTooltip(dot);
-      });
-    }
+  // Tooltip listeners are delegated to the document so they keep working
+  // for safety dots created later (lazily built "extra" cards).
+  document.addEventListener('mouseover', function (e) {
+    if (isTouchPrimary) return;
+    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
+    if (dot) showTooltip(dot);
   });
-
-  document.addEventListener('click', hideTooltip);
+  document.addEventListener('mouseout', function (e) {
+    if (isTouchPrimary) return;
+    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
+    if (dot) hideTooltip();
+  });
+  document.addEventListener('focusin', function (e) {
+    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
+    if (dot) showTooltip(dot);
+  });
+  document.addEventListener('focusout', function (e) {
+    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
+    if (dot) hideTooltip();
+  });
+  document.addEventListener('click', function (e) {
+    if (!isTouchPrimary) { hideTooltip(); return; }
+    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
+    if (dot) {
+      e.stopPropagation();
+      const alreadyShown = sharedTooltip.classList.contains('tpx-stg-show') &&
+        sharedTooltip.textContent === dot.getAttribute('data-tooltip');
+      hideTooltip();
+      if (!alreadyShown) showTooltip(dot);
+      return;
+    }
+    hideTooltip();
+  });
   window.addEventListener('scroll', hideTooltip, true);
 
   document.addEventListener('keydown', function (e) {
@@ -405,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---- Copies a card's generated text and flashes its copy button ----
   function copyCardText(key) {
     const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
+    if (!body) return;
     const value = body.textContent;
     if (!value || body.classList.contains('tpx-stg-placeholder')) return;
 
@@ -420,7 +510,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---- Card copy / download / preview toggle (event delegation on the static grid) ----
+  // ---- Card copy / download / preview toggle (event delegation on the grid, so
+  //      lazily-created "extra" cards are covered without extra listeners) ----
   grid.addEventListener('click', function (e) {
     const copyBtn = e.target.closest('.tpx-stg-copy-btn');
     const dlBtn = e.target.closest('.tpx-stg-download-btn');
@@ -486,20 +577,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function getDate() {
     const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
   function announce(msg) {
     announcer.textContent = '';
-    // Re-set on next frame so repeated identical messages still get announced
     requestAnimationFrame(function () {
       announcer.textContent = msg;
     });
   }
 
-  // ---- Footer actions ----
+  /* ---------- Footer actions ---------- */
   document.getElementById('tpx-stg-btn-paste').addEventListener('click', function () {
-    navigator.clipboard.readText().then(function (t) { ta.value += t; render(); ta.focus(); }).catch(function(){ ta.focus(); });
+    navigator.clipboard.readText().then(function (t) { ta.value += t; render(); ta.focus(); }).catch(function () { ta.focus(); });
   });
   document.getElementById('tpx-stg-btn-clear').addEventListener('click', function () {
     ta.value = ''; render(); ta.focus();
