@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return '<svg class="tpx-icon" aria-hidden="true"><use href="#' + id + '"></use></svg>';
   }
 
-  // ---- Builds one card's full markup (main card + both platform previews) from a style def ----
+  // ---- Builds one card's full markup (main card + all platform previews) from a style def ----
   function cardTemplate(def) {
     const tooltip = SAFETY_TOOLTIPS[def.safety];
     const key = def.key;
@@ -227,11 +227,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="tpx-stg-pv-fb-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
+            '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="twitter" hidden>' +
+              '<div class="tpx-stg-pv-x-cover"></div>' +
+              '<div class="tpx-stg-pv-x-body">' +
+                '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-stg-pv-x-name">Toolpx <span class="tpx-stg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
+                '<div class="tpx-stg-pv-x-handle">@toolpx</div>' +
+                '<div class="tpx-stg-pv-x-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="tpx-stg-preview-tabbar">' +
             '<div class="tpx-stg-preview-tabgroup">' +
-              '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '<span>Instagram</span></button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '<span>Facebook</span></button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="twitter" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '<span>X</span></button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -240,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Real per-platform bio character caps — preview text is clipped to match what the platform actually allows
-  const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101 };
+  const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101, twitter: 160 };
 
   function truncateForPlatform(str, limit) {
     if (!limit) return str;
