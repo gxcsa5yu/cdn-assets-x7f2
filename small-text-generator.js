@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let extraStylesRevealed = false;
 
+  /* =========================================================
+     CONVERSION ENGINE
+     ========================================================= */
 
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
     let out = '';
@@ -222,8 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
               '<div class="tpx-stg-pv-x-cover"></div>' +
               '<div class="tpx-stg-pv-x-body">' +
                 '<div class="tpx-stg-pv-x-top-actions">' +
-                  '<div class="tpx-stg-pv-x-icon-btn"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg></div>' +
-                  '<div class="tpx-stg-pv-x-icon-btn"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M1.998 12c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10c-1.83 0-3.54-.5-5-1.37L2 22l1.37-4.99C2.49 15.54 1.99 13.83 1.99 12zM12 4c-4.41 0-8 3.59-8 8 0 1.45.39 2.82 1.07 4l-.69 2.52 2.59-.68C8.31 18.61 9.68 19 12 19c4.41 0 8-3.59 8-8s-3.59-8-8-8z"/></svg></div>' +
+                  '<div class="tpx-stg-pv-x-icon-btn"><i class="ti ti-bell"></i></div>' +
                   '<button type="button" class="tpx-stg-pv-x-follow-btn">Follow</button>' +
                 '</div>' +
                 '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
