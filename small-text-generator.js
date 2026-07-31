@@ -8,9 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let extraStylesRevealed = false;
 
   /* =========================================================
-     CONVERSION ENGINE — turns typed text into unicode-mapped
-     glyph variants. No CSS/HTML way to remap characters, so
-     this part must be JS.
+     CONVERSION ENGINE
      ========================================================= */
 
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
@@ -131,11 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* =========================================================
-     STYLE CONFIG — the single source of truth for every card:
-     which styles exist, what group they render in (default vs
-     "show more"), their safety rating, and their transform.
-     Adding a style is now a one-line addition here, not a
-     block of hand-written HTML.
+     STYLE CONFIG 
      ========================================================= */
   const SAFETY_TOOLTIPS = {
     safe: 'Safe everywhere',
@@ -176,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return '<svg class="tpx-icon" aria-hidden="true"><use href="#' + id + '"></use></svg>';
   }
 
-  // ---- Builds one card's full markup (main card + all platform previews) from a style def ----
+  // ---- Builds one card's full markup ----
   function cardTemplate(def) {
     const tooltip = SAFETY_TOOLTIPS[def.safety];
     const key = def.key;
@@ -227,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="tpx-stg-pv-fb-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
-            '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="twitter" hidden>' +
+            '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="x" hidden>' +
               '<div class="tpx-stg-pv-x-cover"></div>' +
               '<div class="tpx-stg-pv-x-body">' +
                 '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
@@ -241,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-preview-tabgroup">' +
               '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
               '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="twitter" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-x') + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -249,8 +243,8 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   }
 
-  // Real per-platform bio character caps — preview text is clipped to match what the platform actually allows
-  const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101, twitter: 160 };
+  // Real per-platform bio character caps — mapped for X
+  const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101, x: 160 };
 
   function truncateForPlatform(str, limit) {
     if (!limit) return str;
@@ -301,14 +295,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     toggleNode('node-ig', chars >= 101);
     toggleNode('node-fb', chars >= 150);
-    toggleNode('node-tw', chars >= 160);
+    toggleNode('node-x', chars >= 160); // Ensure your node ID here reflects the naming on the timeline structure
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
     toggleNode('node-bl', words >= 1500);
   }
 
-  // ---- Per-style DOM refs, populated as each group's cards are built ----
   const styleRefs = {};
   function buildStyleRefs(key) {
     styleRefs[key] = {
@@ -318,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  // ---- Builds and mounts every card in a group ("default" or "extra") into its container ----
   function renderCardsForGroup(group, container) {
     const defs = STYLE_DEFS.filter(function (d) { return d.group === group; });
     container.innerHTML = defs.map(cardTemplate).join('');
@@ -326,9 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return defs.map(function (d) { return d.key; });
   }
 
-  // Default-visible cards are built immediately; "extra" cards are built lazily
-  // the first time "Show More Styles" is opened, so a page with 100+ styles
-  // never pays for markup the visitor hasn't asked to see.
   const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
 
   /* ---------- Show More Styles toggle ---------- */
@@ -351,7 +340,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---- Renders only the given subset of style keys ----
   function renderKeys(keys, text, isEmpty) {
     keys.forEach(function (key) {
       const fn = STYLE_FNS[key];
@@ -380,7 +368,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return extraStylesRevealed ? Object.keys(STYLE_FNS) : DEFAULT_VISIBLE_KEYS;
   }
 
-  // ---- Live stats + fill in the visible card bodies ----
   function render() {
     const text = ta.value;
     const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
@@ -445,8 +432,6 @@ document.addEventListener('DOMContentLoaded', function () {
     sharedTooltip.classList.remove('tpx-stg-show');
   }
 
-  // Tooltip listeners are delegated to the document so they keep working
-  // for safety dots created later (lazily built "extra" cards).
   document.addEventListener('mouseover', function (e) {
     if (isTouchPrimary) return;
     const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
@@ -492,7 +477,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ---- Shared helper: flash a button to the check icon briefly after a successful copy ----
   function flashCopied(btn, announceLabel) {
     btn.innerHTML = ICON_CHECK;
     btn.classList.add('tpx-stg-copied');
@@ -503,7 +487,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 1500);
   }
 
-  // ---- Copies a card's generated text and flashes its copy button ----
   function copyCardText(key) {
     const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
     if (!body) return;
@@ -522,8 +505,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---- Card copy / download / preview toggle (event delegation on the grid, so
-  //      lazily-created "extra" cards are covered without extra listeners) ----
   grid.addEventListener('click', function (e) {
     const copyBtn = e.target.closest('.tpx-stg-copy-btn');
     const dlBtn = e.target.closest('.tpx-stg-download-btn');
@@ -578,8 +559,6 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    // Clicking anywhere else on the card's left column (title, safety dot, body text)
-    // copies that card's generated text, same as clicking its copy button.
     if (cardLeft) {
       const body = cardLeft.querySelector('.tpx-stg-card-body');
       const key = body ? body.dataset.key : null;
