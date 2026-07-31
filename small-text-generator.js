@@ -7,10 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let extraStylesRevealed = false;
 
-  /* =========================================================
-     CONVERSION ENGINE
-     ========================================================= */
-
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
     let out = '';
     for (const ch of text) {
