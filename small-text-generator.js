@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     toggleNode('node-ig', chars >= 101);
     toggleNode('node-fb', chars >= 150);
-    toggleNode('node-x', chars >= 160);
+    toggleNode('node-tw', chars >= 160);
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
