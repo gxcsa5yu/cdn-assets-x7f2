@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let extraStylesRevealed = false;
 
+  /* =========================================================
+     CONVERSION ENGINE
+     ========================================================= */
+
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
     let out = '';
     for (const ch of text) {
@@ -220,6 +224,11 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="x" hidden>' +
               '<div class="tpx-stg-pv-x-cover"></div>' +
               '<div class="tpx-stg-pv-x-body">' +
+                '<div class="tpx-stg-pv-x-top-actions">' +
+                  '<div class="tpx-stg-pv-x-icon-btn"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg></div>' +
+                  '<div class="tpx-stg-pv-x-icon-btn"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M1.998 12c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10c-1.83 0-3.54-.5-5-1.37L2 22l1.37-4.99C2.49 15.54 1.99 13.83 1.99 12zM12 4c-4.41 0-8 3.59-8 8 0 1.45.39 2.82 1.07 4l-.69 2.52 2.59-.68C8.31 18.61 9.68 19 12 19c4.41 0 8-3.59 8-8s-3.59-8-8-8z"/></svg></div>' +
+                  '<button type="button" class="tpx-stg-pv-x-follow-btn">Follow</button>' +
+                '</div>' +
                 '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
                 '<div class="tpx-stg-pv-x-name">Toolpx <span class="tpx-stg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
                 '<div class="tpx-stg-pv-x-handle">@toolpx</div>' +
@@ -231,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="tpx-stg-preview-tabgroup">' +
               '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
               '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
+              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-x') + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -291,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     toggleNode('node-ig', chars >= 101);
     toggleNode('node-fb', chars >= 150);
-    toggleNode('node-x', chars >= 160); // Ensure your node ID here reflects the naming on the timeline structure
+    toggleNode('node-x', chars >= 160);
     toggleNode('node-discord', chars >= 190);
     toggleNode('node-reddit', chars >= 200);
     toggleNode('node-li', chars >= 220);
