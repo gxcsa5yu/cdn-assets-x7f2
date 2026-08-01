@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const announcer = document.getElementById('tpx-stg-sr-announcer');
   let extraStylesRevealed = false;
 
-  /* =========================================================
-     CONVERSION ENGINE
-     ========================================================= */
+  /* ---- Conversion engine ---- */
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
     let out = '';
     for (const ch of text) {
@@ -111,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
-  const FUNKY_MARKS = ['\u0301','\u0300','\u0311','\u0330','\u0303'];
+  const FUNKY_MARKS = ['\u0301', '\u0300', '\u0311', '\u0330', '\u0303'];
   function funky(text) {
     let out = '';
     let i = 0;
@@ -123,44 +121,34 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
-  /* =========================================================
-     STYLE CONFIG
-     "size" is a multiplier applied to the base card font-size
-     via a CSS variable (--tpx-stg-scale). It is set ONCE when
-     the card HTML is built (cardTemplate), not on every render,
-     so it costs nothing during typing.
-     1 = normal / default size
-     >1 = render bigger (use for glyphs that look small, e.g. superscript/subscript)
-     <1 = render smaller (use for glyphs that look oversized, e.g. squared/bubbled blocks)
-     To adjust a style's visual size later, just change its
-     "size" number below — nothing else needs to change.
-     ========================================================= */
-  const SAFETY_TOOLTIPS = {
+  /* ---- Style config ----
+     size = multiplier for --tpx-stg-scale (1 = normal, >1 bigger, <1 smaller) */
+  const SAFETY_LABELS = {
     safe: 'Safe everywhere',
     warn: 'May not render on older devices',
     risk: 'Often shows as boxes on some platforms'
   };
 
   const STYLE_DEFS = [
-    { key: 'smallcaps',    title: 'Small Caps',        safety: 'safe', group: 'default', size: 1.05, fn: t => mapLookup(t, SMALLCAPS) },
-    { key: 'superscript',  title: 'Superscript',       safety: 'warn', group: 'default', size: 1.25, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'subscript',    title: 'Subscript',         safety: 'risk', group: 'default', size: 1.25, fn: t => mapLookup(t, SUBSCRIPT) },
-    { key: 'bold',         title: 'Bold',              safety: 'safe', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'smalltext',    title: 'Small Text',        safety: 'safe', group: 'extra',   size: 1.25, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'upsidedown',   title: 'Upside Down',       safety: 'safe', group: 'extra',   size: 1.00, fn: upsideDown },
-    { key: 'backwards',    title: 'Backwards',         safety: 'safe', group: 'extra',   size: 1.00, fn: t => t.split('').reverse().join('') },
-    { key: 'updown',       title: 'Up and Down',       safety: 'safe', group: 'extra',   size: 1.00, fn: upAndDown },
-    { key: 'monoupper',    title: 'Mono Upper',        safety: 'warn', group: 'extra',   size: 0.95, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
-    { key: 'mathsans',     title: 'Math Sans',         safety: 'warn', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
-    { key: 'mathstyle',    title: 'Math Style',        safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bubbles',      title: 'Bubbles',           safety: 'warn', group: 'extra',   size: 0.90, fn: bubbles },
-    { key: 'lightsq',      title: 'Light Squares',     safety: 'warn', group: 'extra',   size: 0.85, fn: lightSquares },
-    { key: 'flourish',     title: 'Flourish',          safety: 'warn', group: 'extra',   size: 1.00, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'fraktur',      title: 'Fraktur',           safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
-    { key: 'script',       title: 'Script / Cursive',  safety: 'warn', group: 'extra',   size: 1.05, fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'darkbubbles',  title: 'Dark Bubbles',      safety: 'risk', group: 'extra',   size: 1.125, fn: darkBubbles },
-    { key: 'darksq',       title: 'Dark Squares',      safety: 'risk', group: 'extra',   size: 1.125, fn: darkSquares },
-    { key: 'funky',        title: 'Funky',             safety: 'risk', group: 'extra',   size: 1.00, fn: funky }
+    { key: 'smallcaps',    title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.05,  fn: t => mapLookup(t, SMALLCAPS) },
+    { key: 'superscript',  title: 'Superscript',      safety: 'warn', group: 'default', size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'subscript',    title: 'Subscript',        safety: 'risk', group: 'default', size: 1.25,  fn: t => mapLookup(t, SUBSCRIPT) },
+    { key: 'bold',         title: 'Bold',             safety: 'safe', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'smalltext',    title: 'Small Text',       safety: 'safe', group: 'extra',   size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'upsidedown',   title: 'Upside Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upsideDown },
+    { key: 'backwards',    title: 'Backwards',        safety: 'safe', group: 'extra',   size: 1.00,  fn: t => t.split('').reverse().join('') },
+    { key: 'updown',       title: 'Up and Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upAndDown },
+    { key: 'monoupper',    title: 'Mono Upper',       safety: 'warn', group: 'extra',   size: 0.95,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'mathsans',     title: 'Math Sans',        safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
+    { key: 'mathstyle',    title: 'Math Style',       safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.90,  fn: bubbles },
+    { key: 'lightsq',      title: 'Light Squares',    safety: 'warn', group: 'extra',   size: 0.85,  fn: lightSquares },
+    { key: 'flourish',     title: 'Flourish',         safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'fraktur',      title: 'Fraktur',          safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
+    { key: 'script',       title: 'Script / Cursive', safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'darkbubbles',  title: 'Dark Bubbles',     safety: 'risk', group: 'extra',   size: 1.125, fn: darkBubbles },
+    { key: 'darksq',       title: 'Dark Squares',     safety: 'risk', group: 'extra',   size: 1.125, fn: darkSquares },
+    { key: 'funky',        title: 'Funky',            safety: 'risk', group: 'extra',   size: 1.00,  fn: funky }
   ];
 
   const STYLE_FNS = {};
@@ -173,9 +161,8 @@ document.addEventListener('DOMContentLoaded', function () {
     return '<svg class="tpx-icon" aria-hidden="true"><use href="#' + id + '"></use></svg>';
   }
 
-  // ---- Builds one card's full markup ----
   function cardTemplate(def) {
-    const tooltip = SAFETY_TOOLTIPS[def.safety];
+    const label = SAFETY_LABELS[def.safety];
     const key = def.key;
     const scale = def.size || 1;
     return (
@@ -183,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="tpx-stg-card-left">' +
           '<div class="tpx-stg-card-header">' +
             '<div class="tpx-stg-card-title-wrap">' +
-              '<span class="tpx-stg-safety-dot ' + def.safety + '" data-tooltip="' + tooltip + '" tabindex="0" role="img" aria-label="Compatibility: ' + tooltip + '"></span>' +
+              '<span class="tpx-stg-safety-dot ' + def.safety + '" role="img" aria-label="Compatibility: ' + label + '"></span>' +
               '<span class="tpx-stg-card-title">' + def.title + '</span>' +
             '</div>' +
             '<div class="tpx-stg-card-actions">' +
@@ -251,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   }
 
-  // Real per-platform bio character caps — mapped for X
   const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101, x: 160 };
 
   function truncateForPlatform(str, limit) {
@@ -261,9 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return chars.slice(0, limit - 1).join('') + '…';
   }
 
-  /* =========================================================
-     TRACK / NEEDLE / NODE-POINT LOGIC
-     ========================================================= */
+  /* ---- Timeline ---- */
   const CHAR_BREAKPOINTS = [
     { chars: 0, pct: 0 },
     { chars: 101, pct: 15 },
@@ -286,8 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const last = CHAR_BREAKPOINTS[CHAR_BREAKPOINTS.length - 1];
     const prev = CHAR_BREAKPOINTS[CHAR_BREAKPOINTS.length - 2];
     const slope = (last.pct - prev.pct) / (last.chars - prev.chars);
-    const pct = last.pct + slope * (chars - last.chars);
-    return Math.min(pct, 100);
+    return Math.min(last.pct + slope * (chars - last.chars), 100);
   }
 
   function toggleNode(id, reached) {
@@ -295,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (node) node.classList.toggle('is-reached', reached);
   }
 
-  function updateTimeline(chars, words) {
+  function updateTimeline(chars) {
     const pct = Math.max(0, Math.min(interpolatePct(chars), 100));
     document.getElementById('tpx-timeline-progress').style.width = pct + '%';
     document.getElementById('tpx-timeline-needle').style.left = pct + '%';
@@ -307,17 +290,13 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleNode('node-li', chars >= 220);
   }
 
-  /* =========================================================
-     PLACEHOLDER SAMPLE (shown by default in each card body)
-     ========================================================= */
+  /* ---- Cards / render ---- */
   const PLACEHOLDER_SAMPLE = 'Type something to start';
   const styleRefs = {};
 
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
-    // Compute the styled placeholder ONCE at build time so the empty-state
-    // render never has to re-run the Unicode mapping function on input events.
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
@@ -343,7 +322,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
 
-  /* ---------- Show More Styles toggle ---------- */
   const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
   if (moreStylesToggle && extraStyles) {
     const moreStylesText = moreStylesToggle.querySelector('.tpx-stg-more-styles-text');
@@ -369,7 +347,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const refs = styleRefs[key];
       if (!refs || !refs.body) return;
       if (isEmpty) {
-        // Use the cached, pre-styled placeholder instead of recomputing fn() every render.
         refs.body.textContent = refs.placeholderText;
         refs.body.classList.add('tpx-stg-placeholder');
         refs.card.classList.add('tpx-stg-card-empty');
@@ -404,9 +381,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
     document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
     document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
-    updateTimeline(chars, words);
-    const isEmpty = text.trim() === '';
-    renderKeys(getActiveKeys(), text, isEmpty);
+    updateTimeline(chars);
+    renderKeys(getActiveKeys(), text, text.trim() === '');
   }
 
   let renderScheduled = false;
@@ -419,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /* ---------- Info strip toggle ---------- */
+  /* ---- Info toggle ---- */
   const infoToggle = document.getElementById('tpx-stg-info-toggle');
   const infoBody = document.getElementById('tpx-stg-info-body');
   if (infoToggle && infoBody) {
@@ -430,71 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ---------- Shared safety-dot tooltip ---------- */
-  const sharedTooltip = document.getElementById('tpx-stg-shared-tooltip');
-  const isTouchPrimary = window.matchMedia('(hover: none)').matches;
-
-  function positionTooltip(target) {
-    const rect = target.getBoundingClientRect();
-    const tipRect = sharedTooltip.getBoundingClientRect();
-    let left = rect.left + rect.width / 2 - tipRect.width / 2;
-    left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
-    let top = rect.top - tipRect.height - 8;
-    if (top < 8) top = rect.bottom + 8;
-    sharedTooltip.style.left = left + 'px';
-    sharedTooltip.style.top = top + 'px';
-  }
-
-  function showTooltip(target) {
-    const text = target.getAttribute('data-tooltip');
-    if (!text) return;
-    sharedTooltip.textContent = text;
-    sharedTooltip.classList.add('tpx-stg-show');
-    positionTooltip(target);
-  }
-
-  function hideTooltip() {
-    sharedTooltip.classList.remove('tpx-stg-show');
-  }
-
-  document.addEventListener('mouseover', function (e) {
-    if (isTouchPrimary) return;
-    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
-    if (dot) showTooltip(dot);
-  });
-
-  document.addEventListener('mouseout', function (e) {
-    if (isTouchPrimary) return;
-    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
-    if (dot) hideTooltip();
-  });
-
-  document.addEventListener('focusin', function (e) {
-    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
-    if (dot) showTooltip(dot);
-  });
-
-  document.addEventListener('focusout', function (e) {
-    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
-    if (dot) hideTooltip();
-  });
-
-  document.addEventListener('click', function (e) {
-    if (!isTouchPrimary) { hideTooltip(); return; }
-    const dot = e.target.closest('.tpx-stg-safety-dot[data-tooltip]');
-    if (dot) {
-      e.stopPropagation();
-      const alreadyShown = sharedTooltip.classList.contains('tpx-stg-show') &&
-        sharedTooltip.textContent === dot.getAttribute('data-tooltip');
-      hideTooltip();
-      if (!alreadyShown) showTooltip(dot);
-      return;
-    }
-    hideTooltip();
-  });
-
-  window.addEventListener('scroll', hideTooltip, true);
-
+  /* ---- Escape closes open previews ---- */
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     document.querySelectorAll('.tpx-stg-preview-panel.is-open').forEach(function (panel) {
@@ -605,13 +517,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ---------- Footer actions ---------- */
+  /* ---- Footer actions ---- */
   document.getElementById('tpx-stg-btn-paste').addEventListener('click', function () {
-    navigator.clipboard.readText().then(function (t) { ta.value += t; render(); ta.focus(); }).catch(function () { ta.focus(); });
+    navigator.clipboard.readText().then(function (t) {
+      ta.value += t;
+      render();
+      ta.focus();
+    }).catch(function () {
+      ta.focus();
+    });
   });
 
   document.getElementById('tpx-stg-btn-clear').addEventListener('click', function () {
-    ta.value = ''; render(); ta.focus();
+    ta.value = '';
+    render();
+    ta.focus();
   });
 
   document.getElementById('tpx-stg-btn-copy').addEventListener('click', function () {
@@ -634,7 +554,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const ext = file.name.split('.').pop().toLowerCase();
     if (ext === 'txt') {
       const reader = new FileReader();
-      reader.onload = function (evt) { ta.value = evt.target.result; render(); };
+      reader.onload = function (evt) {
+        ta.value = evt.target.result;
+        render();
+      };
       reader.readAsText(file);
     } else {
       announce('DOCX parsing uses Mammoth.js — wire up as in Word Counter');
