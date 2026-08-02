@@ -130,24 +130,24 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   const STYLE_DEFS = [
-    { key: 'smallcaps',    title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.05,  fn: t => mapLookup(t, SMALLCAPS) },
+    { key: 'smallcaps',    title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.00,  fn: t => mapLookup(t, SMALLCAPS) },
     { key: 'superscript',  title: 'Superscript',      safety: 'warn', group: 'default', size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'subscript',    title: 'Subscript',        safety: 'risk', group: 'default', size: 1.25,  fn: t => mapLookup(t, SUBSCRIPT) },
-    { key: 'bold',         title: 'Bold',             safety: 'safe', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'subscript',    title: 'Subscript',        safety: 'risk', group: 'default', size: 1.10,  fn: t => mapLookup(t, SUBSCRIPT) },
+    { key: 'bold',         title: 'Bold',             safety: 'safe', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
     { key: 'smalltext',    title: 'Small Text',       safety: 'safe', group: 'extra',   size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
     { key: 'upsidedown',   title: 'Upside Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upsideDown },
     { key: 'backwards',    title: 'Backwards',        safety: 'safe', group: 'extra',   size: 1.00,  fn: t => t.split('').reverse().join('') },
     { key: 'updown',       title: 'Up and Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upAndDown },
-    { key: 'monoupper',    title: 'Mono Upper',       safety: 'warn', group: 'extra',   size: 0.95,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
-    { key: 'mathsans',     title: 'Math Sans',        safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
+    { key: 'monoupper',    title: 'Mono Upper',       safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'mathsans',     title: 'Math Sans',        safety: 'warn', group: 'extra',   size: 1.10,  fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
     { key: 'mathstyle',    title: 'Math Style',       safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.90,  fn: bubbles },
-    { key: 'lightsq',      title: 'Light Squares',    safety: 'warn', group: 'extra',   size: 0.85,  fn: lightSquares },
+    { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.95,  fn: bubbles },
+    { key: 'lightsq',      title: 'Light Squares',    safety: 'warn', group: 'extra',   size: 0.90,  fn: lightSquares },
     { key: 'flourish',     title: 'Flourish',         safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
     { key: 'fraktur',      title: 'Fraktur',          safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
     { key: 'script',       title: 'Script / Cursive', safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'darkbubbles',  title: 'Dark Bubbles',     safety: 'risk', group: 'extra',   size: 1.125, fn: darkBubbles },
-    { key: 'darksq',       title: 'Dark Squares',     safety: 'risk', group: 'extra',   size: 1.125, fn: darkSquares },
+    { key: 'darkbubbles',  title: 'Dark Bubbles',     safety: 'risk', group: 'extra',   size: 1.15, fn: darkBubbles },
+    { key: 'darksq',       title: 'Dark Squares',     safety: 'risk', group: 'extra',   size: 1.15, fn: darkSquares },
     { key: 'funky',        title: 'Funky',            safety: 'risk', group: 'extra',   size: 1.00,  fn: funky }
   ];
 
