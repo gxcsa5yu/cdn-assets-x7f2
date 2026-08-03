@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'updown',       title: 'Alternating Lines',safety: 'safe', group: 'extra',   size: 1.00,  fn: upAndDown },
     { key: 'mathsans',     title: 'Math Sans',        safety: 'warn', group: 'extra',   size: 1.10,  fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
     { key: 'mathstyle',    title: 'Math Style',       safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapLookup(t, MATHSTYLE) },
-    { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.85,  fn: bubbles },
+    { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.90,  fn: bubbles },
     { key: 'lightsq',      title: 'Light Squares',    safety: 'warn', group: 'extra',   size: 0.90,  fn: lightSquares },
     { key: 'script',       title: 'Script / Cursive', safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
     { key: 'flourish',     title: 'Flourish',         safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
