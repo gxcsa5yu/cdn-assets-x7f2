@@ -40,6 +40,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const UPSIDE_UPPER = { A:'∀',B:'𐐒',C:'Ɔ',D:'ᗡ',E:'Ǝ',F:'Ⅎ',G:'⅁',H:'H',I:'I',J:'ſ',K:'ʞ',L:'˥',M:'W',N:'N',O:'O',P:'Ԁ',Q:'Q',R:'ᴚ',S:'S',T:'⊥',U:'∩',V:'Λ',W:'M',X:'X',Y:'⅄',Z:'Z' };
   const UPSIDE_OTHER = { '0':'0','1':'Ɩ','2':'ᄅ','3':'Ɛ','4':'ㄣ','5':'ϛ','6':'9','7':'ㄥ','8':'8','9':'6','.':'˙',',':"'",'?':'¿','!':'¡',"'":',','"':'„','(' :')',')':'(','[':']',']':'[','{':'}','}':'{','<':'>','>':'<','&':'⅋','_':'‾' };
 
+  // Math Style — Cyrillic/Greek look-alike text
+  const MATHSTYLE = {
+    a:'α', b:'ь', c:'с', d:'ԁ', e:'є', f:'f', g:'g', h:'н', i:'ι', j:'ј',
+    k:'κ', l:'l', m:'м', n:'η', o:'σ', p:'ρ', q:'q', r:'я', s:'ѕ', t:'т',
+    u:'υ', v:'v', w:'w', x:'x', y:'у', z:'z'
+  };
+
   function upsideDown(text) {
     let out = '';
     for (const ch of text) {
@@ -52,13 +59,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function bubbles(text) {
+    // Always use the uppercase circled-letter block (better font coverage)
+    // regardless of input case, so the style renders as solid/consistent
+    // glyphs instead of falling back to broken outline shapes.
     let out = '';
     for (const ch of text) {
-      const code = ch.charCodeAt(0);
-      if (ch >= 'A' && ch <= 'Z') out += String.fromCodePoint(0x24B6 + (code - 65));
-      else if (ch >= 'a' && ch <= 'z') out += String.fromCodePoint(0x24D0 + (code - 97));
-      else if (ch === '0') out += '⓪';
-      else if (ch >= '1' && ch <= '9') out += String.fromCodePoint(0x2460 + (code - 49));
+      const up = ch.toUpperCase();
+      if (up >= 'A' && up <= 'Z') {
+        out += String.fromCodePoint(0x24B6 + (up.charCodeAt(0) - 65));
+      } else if (ch === '0') out += '⓪';
+      else if (ch >= '1' && ch <= '9') out += String.fromCodePoint(0x2460 + (ch.charCodeAt(0) - 49));
       else out += ch;
     }
     return out;
@@ -122,7 +132,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ---- Style config ----
-     size = multiplier for --tpx-stg-scale (1 = normal, >1 bigger, <1 smaller) */
+     size = multiplier for --tpx-stg-scale (1 = normal, >1 bigger, <1 smaller)
+     Order below is the exact order cards render in (default group first,
+     then extra group in the order shown when "Show More Styles" is clicked). */
   const SAFETY_LABELS = {
     safe: 'Safe everywhere',
     warn: 'May not render on older devices',
@@ -133,19 +145,21 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'smallcaps',    title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.00,  fn: t => mapLookup(t, SMALLCAPS) },
     { key: 'superscript',  title: 'Superscript',      safety: 'warn', group: 'default', size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
     { key: 'subscript',    title: 'Subscript',        safety: 'risk', group: 'default', size: 1.10,  fn: t => mapLookup(t, SUBSCRIPT) },
+    { key: 'fraktur',      title: 'Fraktur',          safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
     { key: 'bold',         title: 'Bold',             safety: 'safe', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'italic',       title: 'Italic',           safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'bolditalic',   title: 'Bold & Italic',    safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
     { key: 'smalltext',    title: 'Small Text',       safety: 'safe', group: 'extra',   size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
+    { key: 'monoupper',    title: 'Monospace',        safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
     { key: 'upsidedown',   title: 'Upside Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upsideDown },
     { key: 'backwards',    title: 'Backwards',        safety: 'safe', group: 'extra',   size: 1.00,  fn: t => t.split('').reverse().join('') },
-    { key: 'updown',       title: 'Up and Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upAndDown },
-    { key: 'monoupper',    title: 'Mono Upper',       safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'updown',       title: 'Alternating Lines',safety: 'safe', group: 'extra',   size: 1.00,  fn: upAndDown },
     { key: 'mathsans',     title: 'Math Sans',        safety: 'warn', group: 'extra',   size: 1.10,  fn: t => mapContiguous(t, 0x1D5A0, 0x1D5BA, 0x1D7E2, {}) },
-    { key: 'mathstyle',    title: 'Math Style',       safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'mathstyle',    title: 'Math Style',       safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapLookup(t, MATHSTYLE) },
     { key: 'bubbles',      title: 'Bubbles',          safety: 'warn', group: 'extra',   size: 0.95,  fn: bubbles },
     { key: 'lightsq',      title: 'Light Squares',    safety: 'warn', group: 'extra',   size: 0.90,  fn: lightSquares },
-    { key: 'flourish',     title: 'Flourish',         safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'fraktur',      title: 'Fraktur',          safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
     { key: 'script',       title: 'Script / Cursive', safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'flourish',     title: 'Flourish',         safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
     { key: 'darkbubbles',  title: 'Dark Bubbles',     safety: 'risk', group: 'extra',   size: 1.15, fn: darkBubbles },
     { key: 'darksq',       title: 'Dark Squares',     safety: 'risk', group: 'extra',   size: 1.15, fn: darkSquares },
     { key: 'funky',        title: 'Funky',            safety: 'risk', group: 'extra',   size: 1.00,  fn: funky }
