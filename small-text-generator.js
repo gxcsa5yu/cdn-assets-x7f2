@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'fraktur',      title: 'Fraktur',          safety: 'warn', group: 'extra',   size: 1.125, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
     { key: 'bold',         title: 'Bold',             safety: 'safe', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
     { key: 'italic',       title: 'Italic',           safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bolditalic',   title: 'Bold & Italic',    safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
+    { key: 'bolditalic',   title: 'Bold Italic',    safety: 'warn', group: 'extra',   size: 1.05,  fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
     { key: 'smalltext',    title: 'Small Text',       safety: 'safe', group: 'extra',   size: 1.25,  fn: t => mapLookup(t, SUPERSCRIPT) },
     { key: 'monoupper',    title: 'Monospace',        safety: 'warn', group: 'extra',   size: 1.00,  fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
     { key: 'upsidedown',   title: 'Upside Down',      safety: 'safe', group: 'extra',   size: 1.00,  fn: upsideDown },
