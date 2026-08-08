@@ -109,34 +109,10 @@ document.addEventListener('DOMContentLoaded', function () {
     A:'α',B:'в',C:'c',D:'ɗ',E:'є',F:'f',G:'g',H:'н',I:'ι',J:'נ',K:'к',L:'ℓ',M:'м',N:'η',O:'σ',P:'ρ',Q:'q',R:'я',S:'ѕ',T:'т',U:'υ',V:'ν',W:'ω',X:'χ',Y:'у',Z:'z'
   };
 
-  // Faux Ethiopian
-  const FAUX_ETHIOPIAN = {
-    a:'ል',b:'ጌ',c:'ር',d:'ዕ',e:'ቿ',f:'ቻ',g:'ኗ',h:'ዘ',i:'ጎ',j:'ጋ',k:'ክ',l:'ረ',m:'ጠ',n:'ክ',o:'ዐ',p:'የ',q:'ዓ',r:'ዪ',s:'ነ',t:'ፕ',u:'ሁ',v:'ሸ',w:'ሠ',x:'ሸ',y:'ሃ',z:'ጊ',
-    A:'ል',B:'ጌ',C:'ር',D:'ዕ',E:'ቿ',F:'ቻ',G:'ኗ',H:'ዘ',I:'ጎ',J:'ጋ',K:'ክ',L:'ረ',M:'ጠ',N:'ክ',O:'ዐ',P:'የ',Q:'ዓ',R:'ዪ',S:'ነ',T:'ፕ',U:'ሁ',V:'ሸ',W:'ሠ',X:'ሸ',Y:'ሃ',Z:'ጊ'
-  };
-
   // Shadow Script
   const SHADOW_SCRIPT = {
     a:'α',b:'ҍ',c:'ƈ',d:'ԃ',e:'ҽ',f:'ϝ',g:'ɠ',h:'ԋ',i:'ι',j:'ʝ',k:'ƙ',l:'ʅ',m:'ɱ',n:'ɳ',o:'σ',p:'ρ',q:'ϙ',r:'ɾ',s:'ʂ',t:'ƚ',u:'υ',v:'ʋ',w:'ω',x:'x',y:'ყ',z:'z',
     A:'α',B:'ҍ',C:'ƈ',D:'ԃ',E:'ҽ',F:'ϝ',G:'ɠ',H:'ԋ',I:'ι',J:'ʝ',K:'ƙ',L:'ʅ',M:'ɱ',N:'ɳ',O:'σ',P:'ρ',Q:'ϙ',R:'ɾ',S:'ʂ',T:'ƚ',U:'υ',V:'ʋ',W:'ω',X:'x',Y:'ყ',Z:'z'
-  };
-
-  // Cryptic (formerly Ancient Glyphs)
-  const CRYPTIC = {
-    a:'ᗩ',b:'ᗷ',c:'ᑢ',d:'ᗫ',e:'ᘿ',f:'ᖴ',g:'ᘜ',h:'ᕼ',i:'ᓰ',j:'ᒚ',k:'ᖽ',l:'ᒪ',m:'ᘻ',n:'ᘉ',o:'ᓍ',p:'ᕵ',q:'ᕴ',r:'ᖇ',s:'S',t:'ᖶ',u:'ᑘ',v:'ᐺ',w:'ᘺ',x:'᙭',y:'ᖻ',z:'ᗱ',
-    A:'ᗩ',B:'ᗷ',C:'ᑢ',D:'ᗫ',E:'ᘿ',F:'ᖴ',G:'ᘜ',H:'ᕼ',I:'ᓰ',J:'ᒚ',K:'ᖽ',L:'ᒪ',M:'ᘻ',N:'ᘉ',O:'ᓍ',P:'ᕵ',Q:'ᕴ',R:'ᖇ',S:'S',T:'ᖶ',U:'ᑘ',V:'ᐺ',W:'ᘺ',X:'᙭',Y:'ᖻ',Z:'ᗱ'
-  };
-
-  // Fantasy Runes
-  const FANTASY_RUNES = {
-    a:'ᗩ',b:'ᗷ',c:'ᑕ',d:'ᗪ',e:'ᗴ',f:'ᖴ',g:'ᘜ',h:'ℋ',i:'ℐ',j:'ᒍ',k:'ᖽᐸ',l:'ᒪ',m:'ᘻ',n:'ᘉ',o:'ᓍ',p:'ᕵ',q:'ᕴ',r:'ℛ',s:'ᔕ',t:'ᖶ',u:'ᑌ',v:'ᕓ',w:'ᗯ',x:'᙭',y:'ᖻ',z:'ᘔ',
-    A:'ᗩ',B:'ᗷ',C:'ᑕ',D:'ᗪ',E:'ᗴ',F:'ᖴ',G:'ᘜ',H:'ℋ',I:'ℐ',J:'ᒍ',K:'ᖽᐸ',L:'ᒪ',M:'ᘻ',N:'ᘉ',O:'ᓍ',P:'ᕵ',Q:'ᕴ',R:'ℛ',S:'ᔕ',T:'ᖶ',U:'ᑌ',V:'ᕓ',W:'ᗯ',X:'᙭',Y:'ᖻ',Z:'ᘔ'
-  };
-
-  // Symbolic
-  const SYMBOLIC = {
-    a:'α',b:'в',c:'¢',d:'∂',e:'є',f:'ƒ',g:'g',h:'н',i:'ι',j:'נ',k:'к',l:'ℓ',m:'м',n:'η',o:'σ',p:'ρ',q:'q',r:'я',s:'ѕ',t:'т',u:'υ',v:'ν',w:'ω',x:'χ',y:'у',z:'z',
-    A:'α',B:'в',C:'¢',D:'∂',E:'є',F:'ƒ',G:'g',H:'н',I:'ι',J:'נ',K:'к',L:'ℓ',M:'м',N:'η',O:'σ',P:'ρ',Q:'q',R:'я',S:'ѕ',T:'т',U:'υ',V:'ν',W:'ω',X:'χ',Y:'у',Z:'z'
   };
 
   // Thai Fusion
@@ -149,12 +125,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const DECORATIVE_LATIN = {
     a:'å',b:'β',c:'ç',d:'ð',e:'ê',f:'ƒ',g:'g',h:'ħ',i:'ï',j:'ʝ',k:'κ',l:'ℓ',m:'ɱ',n:'ñ',o:'ð',p:'þ',q:'q',r:'ř',s:'§',t:'†',u:'ü',v:'v',w:'ω',x:'χ',y:'¥',z:'ž',
     A:'Å',B:'Β',C:'Ç',D:'Ð',E:'Ê',F:'Ƒ',G:'G',H:'Ħ',I:'Ï',J:'ʝ',K:'Κ',L:'Ł',M:'Ɱ',N:'Ñ',O:'Ð',P:'Þ',Q:'Q',R:'Ř',S:'§',T:'†',U:'Ü',V:'V',W:'Ω',X:'Χ',Y:'¥',Z:'Ž'
-  };
-
-  // Mystic Latin
-  const MYSTIC_LATIN = {
-    a:'α',b:'в',c:'ƈ',d:'ԃ',e:'ҽ',f:'ϝ',g:'ɠ',h:'ԋ',i:'ι',j:'ʝ',k:'ƙ',l:'ʅ',m:'ɱ',n:'ɳ',o:'σ',p:'ρ',q:'ϙ',r:'ɾ',s:'ʂ',t:'ƚ',u:'υ',v:'ʋ',w:'ω',x:'x',y:'ყ',z:'z',
-    A:'α',B:'в',C:'ƈ',D:'ԃ',E:'ҽ',F:'ϝ',G:'ɠ',H:'ԋ',I:'ι',J:'ʝ',K:'ƙ',L:'ʅ',M:'ɱ',N:'ɳ',O:'σ',P:'ρ',Q:'ϙ',R:'ɾ',S:'ʂ',T:'ƚ',U:'υ',V:'ʋ',W:'ω',X:'x',Y:'ყ',Z:'z'
   };
 
   // Techno
@@ -181,28 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
     A:'Λ',B:'B',C:'C',D:'D',E:'Σ',F:'F',G:'G',H:'Ή',I:'I',J:'J',K:'K',L:'L',M:'M',N:'П',O:'Ө',P:'P',Q:'Q',R:'Я',S:'Ƨ',T:'Ƭ',U:'U',V:'V',W:'W',X:'X',Y:'Ƴ',Z:'Z'
   };
 
-  // Cyrillic Mix
-  const CYRILLIC_MIX = {
-    a:'а',b:'б',c:'с',d:'д',e:'э',f:'ф',g:'г',h:'ћ',i:'і',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'ԛ',r:'г',s:'ѕ',t:'т',u:'у',v:'в',w:'ш',x:'х',y:'ӳ',z:'з',
-    A:'А',B:'Б',C:'С',D:'Д',E:'Э',F:'Ф',G:'Г',H:'Ћ',I:'І',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'О',P:'Р',Q:'Ԛ',R:'Г',S:'Ѕ',T:'Т',U:'У',V:'В',W:'Ш',X:'Х',Y:'Ӳ',Z:'З'
-  };
-
   // Slashed Latin
   const SLASHED_LATIN = {
     a:'ⱥ',b:'ƀ',c:'ȼ',d:'đ',e:'ɇ',f:'ƒ',g:'ǥ',h:'ħ',i:'ɨ',j:'ɉ',k:'ꝁ',l:'ł',m:'ɱ',n:'n',o:'ø',p:'ᵽ',q:'ꝗ',r:'ɍ',s:'ꞩ',t:'ŧ',u:'ʉ',v:'v',w:'w',x:'x',y:'ɏ',z:'ƶ',
     A:'Ⱥ',B:'Ƀ',C:'Ȼ',D:'Đ',E:'Ɇ',F:'Ƒ',G:'Ǥ',H:'Ħ',I:'Ɨ',J:'Ɉ',K:'Ꝁ',L:'Ł',M:'Ɱ',N:'N',O:'Ø',P:'Ᵽ',Q:'Ꝗ',R:'Ɍ',S:'Ꞩ',T:'Ŧ',U:'Ʉ',V:'V',W:'W',X:'X',Y:'Ɏ',Z:'Ƶ'
-  };
-
-  // Double Slashed (currency-like)
-  const DOUBLE_SLASHED = {
-    a:'₳',b:'฿',c:'₵',d:'₫',e:'€',f:'₣',g:'₲',h:'₴',i:'ł',j:'ɉ',k:'₭',l:'₤',m:'₥',n:'₦',o:'Ø',p:'₱',q:'Ω',r:'₹',s:'₴',t:'₮',u:'Ʉ',v:'Ѵ',w:'₩',x:'Ӿ',y:'¥',z:'₴',
-    A:'₳',B:'฿',C:'₵',D:'₫',E:'€',F:'₣',G:'₲',H:'₴',I:'ł',J:'Ɉ',K:'₭',L:'₤',M:'₥',N:'₦',O:'Ø',P:'₱',Q:'Ω',R:'₹',S:'₴',T:'₮',U:'Ʉ',V:'Ѵ',W:'₩',X:'Ӿ',Y:'¥',Z:'₴'
-  };
-
-  // Decorative Thai
-  const DECORATIVE_THAI = {
-    a:'ค',b:'๒',c:'ƈ',d:'ɗ',e:'ē',f:'f',g:'g',h:'h',i:'เ',j:'ן',k:'к',l:'l',m:'๓',n:'ภ',o:'໐',p:'ρ',q:'ợ',r:'г',s:'Ş',t:'t',u:'น',v:'v',w:'ω',x:'x',y:'ฯ',z:'z',
-    A:'ค',B:'๒',C:'ƈ',D:'ɗ',E:'Ē',F:'f',G:'g',H:'h',I:'เ',J:'ן',K:'к',L:'l',M:'๓',N:'ภ',O:'໐',P:'ρ',Q:'ợ',R:'г',S:'Ş',T:'t',U:'น',V:'v',W:'ω',X:'x',Y:'ฯ',Z:'z'
   };
 
   // Rusify (formerly Russian Lookalike) — duplicates fixed for uniqueness
@@ -217,28 +169,10 @@ document.addEventListener('DOMContentLoaded', function () {
     A:'Ӓ',B:'Б',C:'Ц',D:'Д',E:'Э',F:'Ф',G:'Г',H:'Ћ',I:'Ї',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'Ѳ',P:'Р',Q:'Ǫ',R:'Г',S:'Ş',T:'Ҭ',U:'Ӳ',V:'В',W:'Ш',X:'Ж',Y:'Ў',Z:'Ƶ'
   };
 
-  // Faux Cyrillic (formerly Fake Cyrillic)
-  const FAUX_CYRILLIC = {
-    a:'а',b:'Б',c:'Ц',d:'Д',e:'э',f:'Ф',g:'Б',h:'Ђ',i:'і',j:'Ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'Ǫ',r:'ѓ',s:'ѕ',t:'т',u:'Ў',v:'В',w:'Ш',x:'Ж',y:'Ў',z:'Ƶ',
-    A:'а',B:'Б',C:'Ц',D:'Д',E:'э',F:'Ф',G:'Б',H:'Ђ',I:'і',J:'Ј',K:'к',L:'л',M:'м',N:'и',O:'о',P:'р',Q:'Ǫ',R:'ѓ',S:'ѕ',T:'т',U:'Ў',V:'В',W:'Ш',X:'Ж',Y:'Ў',Z:'Ƶ'
-  };
-
   // Lisu Style
   const LISU = {
     a:'ꍏ',b:'ꌃ',c:'ꉓ',d:'ꀸ',e:'ꍟ',f:'ꎇ',g:'ꁅ',h:'ꃅ',i:'ꀤ',j:'ꀭ',k:'ꀘ',l:'꒒',m:'ꂵ',n:'ꈤ',o:'ꂦ',p:'ꉣ',q:'ꆰ',r:'ꋪ',s:'ꌗ',t:'꓄',u:'ꀎ',v:'ꃴ',w:'ꅐ',x:'ꊼ',y:'ꌩ',z:'ꁴ',
     A:'ꍏ',B:'ꌃ',C:'ꉓ',D:'ꀸ',E:'ꍟ',F:'ꎇ',G:'ꁅ',H:'ꃅ',I:'ꀤ',J:'ꀭ',K:'ꀘ',L:'꒒',M:'ꂵ',N:'ꈤ',O:'ꂦ',P:'ꉣ',Q:'ꆰ',R:'ꋪ',S:'ꌗ',T:'꓄',U:'ꀎ',V:'ꃴ',W:'ꅐ',X:'ꊼ',Y:'ꌩ',Z:'ꁴ'
-  };
-
-  // Yi Style
-  const YI = {
-    a:'ꀊ',b:'ꀘ',c:'ꀯ',d:'ꀊ',e:'ꈼ',f:'ꃅ',g:'ꁅ',h:'ꍩ',i:'ꂑ',j:'ꀊ',k:'ꀊ',l:'ꀊ',m:'ꂵ',n:'ꋊ',o:'ꂦ',p:'ꉣ',q:'ꀊ',r:'ꌅ',s:'ꌚ',t:'ꋖ',u:'ꀊ',v:'ꀊ',w:'ꀊ',x:'ꀊ',y:'ꐞ',z:'ꀊ',
-    A:'ꀊ',B:'ꀘ',C:'ꀯ',D:'ꀊ',E:'ꈼ',F:'ꃅ',G:'ꁅ',H:'ꍩ',I:'ꂑ',J:'ꀊ',K:'ꀊ',L:'ꀊ',M:'ꂵ',N:'ꋊ',O:'ꂦ',P:'ꉣ',Q:'ꀊ',R:'ꌅ',S:'ꌚ',T:'ꋖ',U:'ꀊ',V:'ꀊ',W:'ꀊ',X:'ꀊ',Y:'ꐞ',Z:'ꀊ'
-  };
-
-  // Old Italic
-  const OLD_ITALIC = {
-    a:'𐌀',b:'𐌁',c:'𐌂',d:'𐌃',e:'𐌄',f:'𐌅',g:'𐌖',h:'𐌇',i:'𐌉',j:'𐌉',k:'𐌊',l:'𐌋',m:'𐌌',n:'𐌍',o:'𐌏',p:'𐌐',q:'𐌒',r:'𐌓',s:'𐌔',t:'𐌕',u:'𐌖',v:'𐌖',w:'𐌖',x:'𐌗',y:'𐌙',z:'𐌆',
-    A:'𐌀',B:'𐌁',C:'𐌂',D:'𐌃',E:'𐌄',F:'𐌅',G:'𐌖',H:'𐌇',I:'𐌉',J:'𐌉',K:'𐌊',L:'𐌋',M:'𐌌',N:'𐌍',O:'𐌏',P:'𐌐',Q:'𐌒',R:'𐌓',S:'𐌔',T:'𐌕',U:'𐌖',V:'𐌖',W:'𐌖',X:'𐌗',Y:'𐌙',Z:'𐌆'
   };
 
   // Katakana
@@ -391,28 +325,17 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
     { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
     { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
-    { key: 'fauxethiopian',  title: 'Faux Ethiopian',   safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAUX_ETHIOPIAN) },
     { key: 'shadowscript',   title: 'Shadow Script',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SHADOW_SCRIPT) },
-    { key: 'cryptic',        title: 'Cryptic',          safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CRYPTIC) },
-    { key: 'fantasyrunes',   title: 'Fantasy Runes',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FANTASY_RUNES) },
-    { key: 'symbolic',       title: 'Symbolic',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SYMBOLIC) },
     { key: 'thaifusion',     title: 'Thai Fusion',      safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, THAI_FUSION) },
     { key: 'decorativelatin',title: 'Decorative Latin', safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_LATIN) },
-    { key: 'mysticlatin',    title: 'Mystic Latin',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC_LATIN) },
     { key: 'techno',         title: 'Techno',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, TECHNO) },
     { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'greekfusion',    title: 'Greek Fusion',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_FUSION) },
     { key: 'greekcapitals',  title: 'Greek Capitals',   safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_CAPITALS) },
-    { key: 'cyrillicmix',    title: 'Cyrillic Mix',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYRILLIC_MIX) },
     { key: 'slashedlatin',   title: 'Slashed Latin',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SLASHED_LATIN) },
-    { key: 'doubleslashed',  title: 'Double Slashed',   safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DOUBLE_SLASHED) },
-    { key: 'decorativethai', title: 'Decorative Thai',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_THAI) },
     { key: 'rusify',         title: 'Rusify',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, RUSIFY) },
     { key: 'soviet',         title: 'Soviet',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SOVIET) },
-    { key: 'fauxcyrillic',   title: 'Faux Cyrillic',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAUX_CYRILLIC) },
     { key: 'lisu',           title: 'Lisu Style',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, LISU) },
-    { key: 'yi',             title: 'Yi Style',         safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, YI) },
-    { key: 'olditalic',      title: 'Old Italic',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, OLD_ITALIC) },
     { key: 'katakana',       title: 'Katakana',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, KATAKANA) },
     { key: 'pixeleast',      title: 'Pixel East',       safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, PIXEL_EAST) },
     { key: 'stinky',         title: 'Stinky',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, STINKY) },
