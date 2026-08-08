@@ -73,14 +73,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Currency style
   const CURRENCY = {
-    a:'₳',b:'฿',c:'₵',d:'₫',e:'€',f:'₣',g:'₲',h:'₴',i:'ł',j:'ɉ',k:'₭',l:'₤',m:'₥',n:'₦',o:'Ø',p:'₱',q:'Ω',r:'₹',s:'₴',t:'₮',u:'Ʉ',v:'Ѵ',w:'₩',x:'Ӿ',y:'¥',z:'₴',
-    A:'₳',B:'฿',C:'₵',D:'₫',E:'€',F:'₣',G:'₲',H:'₴',I:'ł',J:'Ɉ',K:'₭',L:'₤',M:'₥',N:'₦',O:'Ø',P:'₱',Q:'Ω',R:'₹',S:'₴',T:'₮',U:'Ʉ',V:'Ѵ',W:'₩',X:'Ӿ',Y:'¥',Z:'₴'
+    a:'₳',b:'฿',c:'₵',d:'₫',e:'€',f:'₣',g:'₲',h:'Ⱨ',i:'ł',j:'ɉ',k:'₭',l:'₤',m:'₥',n:'₦',o:'Ø',p:'₱',q:'Ꝗ',r:'₹',s:'$',t:'₮',u:'Ʉ',v:'Ѵ',w:'₩',x:'Ӿ',y:'¥',z:'Ƶ',
+    A:'₳',B:'฿',C:'₵',D:'₫',E:'€',F:'₣',G:'₲',H:'Ⱨ',I:'ł',J:'Ɉ',K:'₭',L:'₤',M:'₥',N:'₦',O:'Ø',P:'₱',Q:'Ꝗ',R:'₹',S:'$',T:'₮',U:'Ʉ',V:'Ѵ',W:'₩',X:'Ӿ',Y:'¥',Z:'Ƶ'
   };
 
   // Gaming / Canadian Aboriginal style
   const GAMING = {
-    a:'ᗩ',b:'ᗷ',c:'ᑕ',d:'ᗪ',e:'E',f:'ᖴ',g:'G',h:'ᕼ',i:'I',j:'ᒍ',k:'K',l:'L',m:'ᗰ',n:'ᑎ',o:'O',p:'ᑭ',q:'ᑫ',r:'ᖇ',s:'ᔕ',t:'T',u:'ᑌ',v:'ᐯ',w:'ᗯ',x:'᙭',y:'Y',z:'ᘔ',
-    A:'ᗩ',B:'ᗷ',C:'ᑕ',D:'ᗪ',E:'E',F:'ᖴ',G:'G',H:'ᕼ',I:'I',J:'ᒍ',K:'K',L:'L',M:'ᗰ',N:'ᑎ',O:'O',P:'ᑭ',Q:'ᑫ',R:'ᖇ',S:'ᔕ',T:'T',U:'ᑌ',V:'ᐯ',W:'ᗯ',X:'᙭',Y:'Y',Z:'ᘔ'
+    a:'ᗩ',b:'ᗷ',c:'ᑕ',d:'ᗪ',e:'E',f:'ᖴ',g:'G',h:'ᕼ',i:'I',j:'ᒍ',k:'K',l:'ᒪ',m:'ᗰ',n:'ᑎ',o:'O',p:'ᑭ',q:'ᑫ',r:'ᖇ',s:'ᔕ',t:'T',u:'ᑌ',v:'ᐯ',w:'ᗯ',x:'᙭',y:'Y',z:'ᘔ',
+    A:'ᗩ',B:'ᗷ',C:'ᑕ',D:'ᗪ',E:'E',F:'ᖴ',G:'G',H:'ᕼ',I:'I',J:'ᒍ',K:'K',L:'ᒪ',M:'ᗰ',N:'ᑎ',O:'O',P:'ᑭ',Q:'ᑫ',R:'ᖇ',S:'ᔕ',T:'T',U:'ᑌ',V:'ᐯ',W:'ᗯ',X:'᙭',Y:'Y',Z:'ᘔ'
   };
 
   // Braille
@@ -105,8 +105,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Mystic
   const MYSTIC = {
-    a:'α',b:'в',c:'c',d:'ɗ',e:'є',f:'f',g:'g',h:'н',i:'ι',j:'נ',k:'к',l:'ℓ',m:'м',n:'η',o:'σ',p:'ρ',q:'q',r:'я',s:'ѕ',t:'т',u:'υ',v:'ν',w:'ω',x:'χ',y:'у',z:'z',
-    A:'α',B:'в',C:'c',D:'ɗ',E:'є',F:'f',G:'g',H:'н',I:'ι',J:'נ',K:'к',L:'ℓ',M:'м',N:'η',O:'σ',P:'ρ',Q:'q',R:'я',S:'ѕ',T:'т',U:'υ',V:'ν',W:'ω',X:'χ',Y:'у',Z:'z'
+    a:'α',b:'в',c:'c',d:'ɗ',e:'є',f:'f',g:'g',h:'н',i:'ι',j:'ʝ',k:'к',l:'ℓ',m:'м',n:'η',o:'σ',p:'ρ',q:'q',r:'я',s:'ѕ',t:'т',u:'υ',v:'ν',w:'ω',x:'χ',y:'у',z:'z',
+    A:'α',B:'в',C:'c',D:'ɗ',E:'є',F:'f',G:'g',H:'н',I:'ι',J:'ʝ',K:'к',L:'ℓ',M:'м',N:'η',O:'σ',P:'ρ',Q:'q',R:'я',S:'ѕ',T:'т',U:'υ',V:'ν',W:'ω',X:'χ',Y:'у',Z:'z'
+  };
+
+  // Old Italic (fixed — no more collisions, borrows from Cherokee/Canadian Aboriginal Syllabics to fill gaps)
+  const OLD_ITALIC = {
+    a:'𐌀',b:'𐌁',c:'𐌂',d:'𐌃',e:'𐌄',f:'𐌅',g:'Ᏼ',h:'𐋅',i:'𐌉',j:'Ꮭ',k:'𐌊',l:'𐌋',m:'𐌌',n:'𐌍',o:'Ꝋ',p:'𐌐',q:'𐌒',r:'𐌓',s:'𐌔',t:'𐌕',u:'𐌵',v:'ᕓ',w:'Ꮤ',x:'𐋄',y:'𐌙',z:'Ɀ',
+    A:'𐌀',B:'𐌁',C:'𐌂',D:'𐌃',E:'𐌄',F:'𐌅',G:'Ᏼ',H:'𐋅',I:'𐌉',J:'Ꮭ',K:'𐌊',L:'𐌋',M:'𐌌',N:'𐌍',O:'Ꝋ',P:'𐌐',Q:'𐌒',R:'𐌓',S:'𐌔',T:'𐌕',U:'𐌵',V:'ᕓ',W:'Ꮤ',X:'𐋄',Y:'𐌙',Z:'Ɀ'
+  };
+
+  // Faux Ethiopian (fixed — no more collisions)
+  const FAUX_ETHIOPIAN = {
+    a:'ል',b:'ጌ',c:'ር',d:'ዕ',e:'ቿ',f:'ቻ',g:'ኗ',h:'ዘ',i:'ጎ',j:'ጋ',k:'ጕ',l:'ረ',m:'ጠ',n:'ክ',o:'ዐ',p:'የ',q:'ቅ',r:'ዪ',s:'ነ',t:'ፕ',u:'ሁ',v:'ሀ',w:'ሠ',x:'ሸ',y:'ሃ',z:'ጊ',
+    A:'ል',B:'ጌ',C:'ር',D:'ዕ',E:'ቿ',F:'ቻ',G:'ኗ',H:'ዘ',I:'ጎ',J:'ጋ',K:'ጕ',L:'ረ',M:'ጠ',N:'ክ',O:'ዐ',P:'የ',Q:'ቅ',R:'ዪ',S:'ነ',T:'ፕ',U:'ሁ',V:'ሀ',W:'ሠ',X:'ሸ',Y:'ሃ',Z:'ጊ'
+  };
+
+  // Modern Greek
+  const MODERN_GREEK = {
+    a:'Λ',b:'Ɓ',c:'Ƈ',d:'Ɗ',e:'Σ',f:'F',g:'G',h:'Ή',i:'I',j:'J',k:'Ƙ',l:'Ƚ',m:'M',n:'П',o:'Ө',p:'P',q:'Ƣ',r:'Я',s:'Ƨ',t:'Ƭ',u:'Ʊ',v:'V',w:'Ш',x:'Ж',y:'Ƴ',z:'Ƶ',
+    A:'Λ',B:'Ɓ',C:'Ƈ',D:'Ɗ',E:'Σ',F:'F',G:'G',H:'Ή',I:'I',J:'J',K:'Ƙ',L:'Ƚ',M:'M',N:'П',O:'Ө',P:'P',Q:'Ƣ',R:'Я',S:'Ƨ',T:'Ƭ',U:'Ʊ',V:'V',W:'Ш',X:'Ж',Y:'Ƴ',Z:'Ƶ'
+  };
+
+  // Wise Characters (r fixed — swapped a Gujarati glyph for an IPA lookalike to keep the set visually consistent)
+  const WISE_CHARACTERS = {
+    a:'λ',b:'β',c:'Ć',d:'δ',e:'ε',f:'ƒ',g:'Ģ',h:'ħ',i:'ί',j:'ĵ',k:'κ',l:'ℓ',m:'ɱ',n:'ɴ',o:'Θ',p:'ρ',q:'q',r:'ɼ',s:'Ș',t:'τ',u:'µ',v:'v',w:'ω',x:'χ',y:'ϓ',z:'ζ',
+    A:'λ',B:'β',C:'Ć',D:'δ',E:'ε',F:'ƒ',G:'Ģ',H:'ħ',I:'ί',J:'ĵ',K:'κ',L:'ℓ',M:'ɱ',N:'ɴ',O:'Θ',P:'ρ',Q:'q',R:'ɼ',S:'Ș',T:'τ',U:'µ',V:'v',W:'ω',X:'χ',Y:'ϓ',Z:'ζ'
+  };
+
+  // Hidden Heritage (RTL Hebrew/Arabic glyphs swapped for LTR-safe lookalikes to avoid bidi text-reordering bugs)
+  const HIDDEN_HERITAGE = {
+    a:'ค',b:'๒',c:'ς',d:'๔',e:'є',f:'Ŧ',g:'ງ',h:'ђ',i:'เ',j:'ĵ',k:'к',l:'ɭ',m:'๓',n:'ภ',o:'๏',p:'ρ',q:'ợ',r:'г',s:'ร',t:'Շ',u:'ย',v:'ѵ',w:'ฬ',x:'ჯ',y:'ყ',z:'չ',
+    A:'ค',B:'๒',C:'ς',D:'๔',E:'є',F:'Ŧ',G:'ງ',H:'ђ',I:'เ',J:'ĵ',K:'к',L:'ɭ',M:'๓',N:'ภ',O:'๏',P:'ρ',Q:'ợ',R:'г',S:'ร',T:'Շ',U:'ย',V:'ѵ',W:'ฬ',X:'ჯ',Y:'ყ',Z:'չ'
   };
 
   // Shadow Script
@@ -117,14 +147,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Thai Fusion
   const THAI_FUSION = {
-    a:'ค',b:'๒',c:'ƈ',d:'ɗ',e:'є',f:'f',g:'g',h:'ђ',i:'เ',j:'ן',k:'к',l:'l',m:'๓',n:'ภ',o:'๏',p:'ρ',q:'ợ',r:'г',s:'ร',t:'t',u:'น',v:'v',w:'ω',x:'x',y:'ყ',z:'z',
-    A:'ค',B:'๒',C:'ƈ',D:'ɗ',E:'є',F:'f',G:'g',H:'ђ',I:'เ',J:'ן',K:'к',L:'l',M:'๓',N:'ภ',O:'๏',P:'ρ',Q:'ợ',R:'г',S:'ร',T:'t',U:'น',V:'v',W:'ω',X:'x',Y:'ყ',Z:'z'
+    a:'ค',b:'๒',c:'ƈ',d:'ɗ',e:'є',f:'f',g:'g',h:'ђ',i:'เ',j:'ĵ',k:'к',l:'l',m:'๓',n:'ภ',o:'๏',p:'ρ',q:'ợ',r:'г',s:'ร',t:'t',u:'น',v:'v',w:'ω',x:'x',y:'ყ',z:'z',
+    A:'ค',B:'๒',C:'ƈ',D:'ɗ',E:'є',F:'f',G:'g',H:'ђ',I:'เ',J:'ĵ',K:'к',L:'l',M:'๓',N:'ภ',O:'๏',P:'ρ',Q:'ợ',R:'г',S:'ร',T:'t',U:'น',V:'v',W:'ω',X:'x',Y:'ყ',Z:'z'
   };
 
   // Decorative Latin
   const DECORATIVE_LATIN = {
-    a:'å',b:'β',c:'ç',d:'ð',e:'ê',f:'ƒ',g:'g',h:'ħ',i:'ï',j:'ʝ',k:'κ',l:'ℓ',m:'ɱ',n:'ñ',o:'ð',p:'þ',q:'q',r:'ř',s:'§',t:'†',u:'ü',v:'v',w:'ω',x:'χ',y:'¥',z:'ž',
-    A:'Å',B:'Β',C:'Ç',D:'Ð',E:'Ê',F:'Ƒ',G:'G',H:'Ħ',I:'Ï',J:'ʝ',K:'Κ',L:'Ł',M:'Ɱ',N:'Ñ',O:'Ð',P:'Þ',Q:'Q',R:'Ř',S:'§',T:'†',U:'Ü',V:'V',W:'Ω',X:'Χ',Y:'¥',Z:'Ž'
+    a:'å',b:'β',c:'ç',d:'ð',e:'ê',f:'ƒ',g:'g',h:'ħ',i:'ï',j:'ʝ',k:'κ',l:'ℓ',m:'ɱ',n:'ñ',o:'ο',p:'þ',q:'q',r:'ř',s:'§',t:'†',u:'ü',v:'v',w:'ω',x:'χ',y:'¥',z:'ž',
+    A:'Å',B:'Β',C:'Ç',D:'Ð',E:'Ê',F:'Ƒ',G:'G',H:'Ħ',I:'Ï',J:'ʝ',K:'Κ',L:'Ł',M:'Ɱ',N:'Ñ',O:'Ο',P:'Þ',Q:'Q',R:'Ř',S:'§',T:'†',U:'Ü',V:'V',W:'Ω',X:'Χ',Y:'¥',Z:'Ž'
   };
 
   // Techno
@@ -159,14 +189,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Rusify (formerly Russian Lookalike) — duplicates fixed for uniqueness
   const RUSIFY = {
-    a:'а',b:'б',c:'ц',d:'д',e:'є',f:'ф',g:'г',h:'н',i:'і',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'ԛ',r:'я',s:'с',t:'т',u:'у',v:'в',w:'ш',x:'ж',y:'у',z:'з',
-    A:'А',B:'Б',C:'Ц',D:'Д',E:'Є',F:'Ф',G:'Г',H:'Н',I:'І',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'О',P:'Р',Q:'Ԛ',R:'Я',S:'С',T:'Т',U:'У',V:'В',W:'Ш',X:'Ж',Y:'У',Z:'З'
+    a:'а',b:'б',c:'ц',d:'д',e:'є',f:'ф',g:'г',h:'н',i:'і',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'ԛ',r:'я',s:'с',t:'т',u:'у',v:'в',w:'ш',x:'ж',y:'ý',z:'з',
+    A:'А',B:'Б',C:'Ц',D:'Д',E:'Є',F:'Ф',G:'Г',H:'Н',I:'І',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'О',P:'Р',Q:'Ԛ',R:'Я',S:'С',T:'Т',U:'У',V:'В',W:'Ш',X:'Ж',Y:'Ý',Z:'З'
   };
 
   // Soviet (formerly Cyber Cyrillic) — Latin p fixed, y made distinct
   const SOVIET = {
-    a:'ӓ',b:'б',c:'ц',d:'д',e:'э',f:'ф',g:'г',h:'ћ',i:'ї',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'ѳ',p:'р',q:'ǫ',r:'г',s:'ş',t:'ҭ',u:'ӳ',v:'в',w:'ш',x:'ж',y:'ў',z:'ƶ',
-    A:'Ӓ',B:'Б',C:'Ц',D:'Д',E:'Э',F:'Ф',G:'Г',H:'Ћ',I:'Ї',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'Ѳ',P:'Р',Q:'Ǫ',R:'Г',S:'Ş',T:'Ҭ',U:'Ӳ',V:'В',W:'Ш',X:'Ж',Y:'Ў',Z:'Ƶ'
+    a:'ӓ',b:'б',c:'ц',d:'д',e:'э',f:'ф',g:'ѓ',h:'ћ',i:'ї',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'ѳ',p:'р',q:'ǫ',r:'г',s:'ş',t:'ҭ',u:'ӳ',v:'в',w:'ш',x:'ж',y:'ў',z:'ƶ',
+    A:'Ӓ',B:'Б',C:'Ц',D:'Д',E:'Э',F:'Ф',G:'Ѓ',H:'Ћ',I:'Ї',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'Ѳ',P:'Р',Q:'Ǫ',R:'Г',S:'Ş',T:'Ҭ',U:'Ӳ',V:'В',W:'Ш',X:'Ж',Y:'Ў',Z:'Ƶ'
   };
 
   // Lisu Style
@@ -195,8 +225,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Hieroglyphs (new)
   const HIEROGLYPHS = {
-    a:'Թ',b:'Ϧ',c:'ƈ',d:'ɖ',e:'ȝ',f:'ք',g:'ɡ',h:'ɧ',i:'ɿ',j:'ј',k:'ƙ',l:'ʂ',m:'ʍ',n:'ռ',o:'ծ',p:'ρ',q:'ϙ',r:'ɾ',s:'ʂ',t:'ɛ',u:'մ',v:'ν',w:'ɯ',x:'ӿ',y:'վ',z:'ȥ',
-    A:'Թ',B:'Ϧ',C:'ƈ',D:'ɖ',E:'ȝ',F:'ք',G:'ɡ',H:'ɧ',I:'ɿ',J:'ј',K:'ƙ',L:'ʂ',M:'ʍ',N:'ռ',O:'ծ',P:'ρ',Q:'ϙ',R:'ɾ',S:'ʂ',T:'ɛ',U:'մ',V:'ν',W:'ɯ',X:'ӿ',Y:'վ',Z:'ȥ'
+    a:'Թ',b:'Ϧ',c:'ƈ',d:'ɖ',e:'ȝ',f:'ք',g:'ɡ',h:'ɧ',i:'ɿ',j:'ј',k:'ƙ',l:'ʟ',m:'ʍ',n:'ռ',o:'ծ',p:'ρ',q:'ϙ',r:'ɾ',s:'ʂ',t:'ɛ',u:'մ',v:'ν',w:'ɯ',x:'ӿ',y:'վ',z:'ȥ',
+    A:'Թ',B:'Ϧ',C:'ƈ',D:'ɖ',E:'ȝ',F:'ք',G:'ɡ',H:'ɧ',I:'ɿ',J:'ј',K:'ƙ',L:'ʟ',M:'ʍ',N:'ռ',O:'ծ',P:'ρ',Q:'ϙ',R:'ɾ',S:'ʂ',T:'ɛ',U:'մ',V:'ν',W:'ɯ',X:'ӿ',Y:'վ',Z:'ȥ'
   };
 
   // Yangtan (new)
@@ -327,15 +357,20 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
     { key: 'shadowscript',   title: 'Shadow Script',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SHADOW_SCRIPT) },
     { key: 'thaifusion',     title: 'Thai Fusion',      safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, THAI_FUSION) },
+    { key: 'hiddenheritage', title: 'Hidden Heritage',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIDDEN_HERITAGE) },
     { key: 'decorativelatin',title: 'Decorative Latin', safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_LATIN) },
     { key: 'techno',         title: 'Techno',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, TECHNO) },
     { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'greekfusion',    title: 'Greek Fusion',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_FUSION) },
     { key: 'greekcapitals',  title: 'Greek Capitals',   safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_CAPITALS) },
+    { key: 'moderngreek',    title: 'Modern Greek',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MODERN_GREEK) },
+    { key: 'wisecharacters', title: 'Wise Characters',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WISE_CHARACTERS) },
     { key: 'slashedlatin',   title: 'Slashed Latin',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SLASHED_LATIN) },
     { key: 'rusify',         title: 'Rusify',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, RUSIFY) },
     { key: 'soviet',         title: 'Soviet',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SOVIET) },
     { key: 'lisu',           title: 'Lisu Style',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, LISU) },
+    { key: 'olditalic',      title: 'Old Italic',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, OLD_ITALIC) },
+    { key: 'fauxethiopian',  title: 'Faux Ethiopian',   safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAUX_ETHIOPIAN) },
     { key: 'katakana',       title: 'Katakana',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, KATAKANA) },
     { key: 'pixeleast',      title: 'Pixel East',       safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, PIXEL_EAST) },
     { key: 'stinky',         title: 'Stinky',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, STINKY) },
