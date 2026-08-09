@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾' };
 
   const UPSIDE_LOWER = { a:'ɐ',b:'q',c:'ɔ',d:'p',e:'ǝ',f:'ɟ',g:'ƃ',h:'ɥ',i:'ᴉ',j:'ɾ',k:'ʞ',l:'l',m:'ɯ',n:'u',o:'o',p:'d',q:'b',r:'ɹ',s:'s',t:'ʇ',u:'n',v:'ʌ',w:'ʍ',x:'x',y:'ʎ',z:'z' };
-  const UPSIDE_UPPER = { A:'∀',B:'𐐒',C:'Ɔ',D:'ᗡ',E:'Ǝ',F:'Ⅎ',G:'⅁',H:'H',I:'I',J:'ſ',K:'ʞ',L:'˥',M:'W',N:'N',O:'O',P:'Ԁ',Q:'Q',R:'ᴚ',S:'S',T:'⊥',U:'∩',V:'Λ',W:'M',X:'X',Y:'⅄',Z:'Z' };
+  const UPSIDE_UPPER = { A:'∀',B:'ᙠ',C:'Ↄ',D:'ᗡ',E:'Ǝ',F:'Ⅎ',G:'⅁',H:'H',I:'I',J:'ſ',K:'ʞ',L:'˥',M:'W',N:'N',O:'O',P:'Ԁ',Q:'Q',R:'ᴚ',S:'S',T:'⊥',U:'∩',V:'Λ',W:'M',X:'X',Y:'⅄',Z:'Z' };
   const UPSIDE_OTHER = { '0':'0','1':'Ɩ','2':'ᄅ','3':'Ɛ','4':'ㄣ','5':'ϛ','6':'9','7':'ㄥ','8':'8','9':'6','.':'˙',',':"'",'?':'¿','!':'¡',"'":',','"':'„','(' :')',')':'(','[':']',']':'[','{':'}','}':'{','<':'>','>':'<','&':'⅋','_':'‾' };
 
   function upsideDown(text) {
@@ -73,14 +73,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Currency style
   const CURRENCY = {
-    a:'₳',b:'฿',c:'₵',d:'₫',e:'€',f:'₣',g:'₲',h:'Ⱨ',i:'ł',j:'ɉ',k:'₭',l:'₤',m:'₥',n:'₦',o:'Ø',p:'₱',q:'Ꝗ',r:'₹',s:'$',t:'₮',u:'Ʉ',v:'Ѵ',w:'₩',x:'Ӿ',y:'¥',z:'Ƶ',
-    A:'₳',B:'฿',C:'₵',D:'₫',E:'€',F:'₣',G:'₲',H:'Ⱨ',I:'ł',J:'Ɉ',K:'₭',L:'₤',M:'₥',N:'₦',O:'Ø',P:'₱',Q:'Ꝗ',R:'₹',S:'$',T:'₮',U:'Ʉ',V:'Ѵ',W:'₩',X:'Ӿ',Y:'¥',Z:'Ƶ'
+    a:'₳',b:'฿',c:'₵',d:'Ð',e:'€',f:'₣',g:'₲',h:'Ⱨ',i:'ł',j:'ɉ',k:'₭',l:'₤',m:'M',n:'₦',o:'Ø',p:'₱',q:'Ꝗ',r:'₹',s:'$',t:'₮',u:'Ʉ',v:'Ѵ',w:'₩',x:'Ӿ',y:'¥',z:'Ƶ',
+    A:'₳',B:'฿',C:'₵',D:'Ð',E:'€',F:'₣',G:'₲',H:'Ⱨ',I:'ł',J:'Ɉ',K:'₭',L:'₤',M:'M',N:'₦',O:'Ø',P:'₱',Q:'Ꝗ',R:'₹',S:'$',T:'₮',U:'Ʉ',V:'Ѵ',W:'₩',X:'Ӿ',Y:'¥',Z:'Ƶ'
   };
 
   // Gaming / Canadian Aboriginal style
   const GAMING = {
-    a:'ᗩ',b:'ᗷ',c:'ᑕ',d:'ᗪ',e:'E',f:'ᖴ',g:'G',h:'ᕼ',i:'I',j:'ᒍ',k:'K',l:'ᒪ',m:'ᗰ',n:'ᑎ',o:'O',p:'ᑭ',q:'ᑫ',r:'ᖇ',s:'ᔕ',t:'T',u:'ᑌ',v:'ᐯ',w:'ᗯ',x:'᙭',y:'Y',z:'ᘔ',
-    A:'ᗩ',B:'ᗷ',C:'ᑕ',D:'ᗪ',E:'E',F:'ᖴ',G:'G',H:'ᕼ',I:'I',J:'ᒍ',K:'K',L:'ᒪ',M:'ᗰ',N:'ᑎ',O:'O',P:'ᑭ',Q:'ᑫ',R:'ᖇ',S:'ᔕ',T:'T',U:'ᑌ',V:'ᐯ',W:'ᗯ',X:'᙭',Y:'Y',Z:'ᘔ'
+    a:'ᗩ',b:'ᗷ',c:'ᑕ',d:'ᗪ',e:'E',f:'ᖴ',g:'G',h:'ᕼ',i:'I',j:'ᒍ',k:'K',l:'ᒪ',m:'ᗰ',n:'ᑎ',o:'O',p:'ᑭ',q:'ᑫ',r:'ᖇ',s:'S',t:'T',u:'ᑌ',v:'ᐯ',w:'ᗯ',x:'᙭',y:'Y',z:'ᘔ',
+    A:'ᗩ',B:'ᗷ',C:'ᑕ',D:'ᗪ',E:'E',F:'ᖴ',G:'G',H:'ᕼ',I:'I',J:'ᒍ',K:'K',L:'ᒪ',M:'ᗰ',N:'ᑎ',O:'O',P:'ᑭ',Q:'ᑫ',R:'ᖇ',S:'S',T:'T',U:'ᑌ',V:'ᐯ',W:'ᗯ',X:'᙭',Y:'Y',Z:'ᘔ'
   };
 
   // Braille
@@ -93,14 +93,20 @@ document.addEventListener('DOMContentLoaded', function () {
   // Runic (Cherokee-inspired)
   // Fairytale (formerly Runic)
   const FAIRYTALE = {
-    a:'Ꮧ',b:'Ᏸ',c:'Ꮳ',d:'Ꮄ',e:'Ꮛ',f:'Ꮈ',g:'Ꮆ',h:'Ꮒ',i:'Ꭵ',j:'Ꮰ',k:'Ꮶ',l:'Ꮮ',m:'Ꮇ',n:'Ꮑ',o:'Ꭷ',p:'Ꭾ',q:'Ꭴ',r:'Ꮢ',s:'Ꮥ',t:'Ꮦ',u:'Ꮼ',v:'Ꮙ',w:'Ꮗ',x:'Ꮲ',y:'Ꭹ',z:'Ꮓ',
-    A:'Ꮧ',B:'Ᏸ',C:'Ꮳ',D:'Ꮄ',E:'Ꮛ',F:'Ꮈ',G:'Ꮆ',H:'Ꮒ',I:'Ꭵ',J:'Ꮰ',K:'Ꮶ',L:'Ꮮ',M:'Ꮇ',N:'Ꮑ',O:'Ꭷ',P:'Ꭾ',Q:'Ꭴ',R:'Ꮢ',S:'Ꮥ',T:'Ꮦ',U:'Ꮼ',V:'Ꮙ',W:'Ꮗ',X:'Ꮲ',Y:'Ꭹ',Z:'Ꮓ'
+    a:'Ꮧ',b:'Ᏸ',c:'Ꮳ',d:'Ꮄ',e:'Ꮛ',f:'Ꮈ',g:'Ꮆ',h:'Ꮒ',i:'Ꭵ',j:'Ꮰ',k:'Ꮶ',l:'Ꮮ',m:'Ꮇ',n:'Ꮑ',o:'Ꭷ',p:'Ꭾ',q:'Ꭴ',r:'Ꮢ',s:'Ꮥ',t:'Ꮦ',u:'Ꮼ',v:'Ꮙ',w:'Ꮗ',x:'ጀ',y:'Ꭹ',z:'ፚ',
+    A:'Ꮧ',B:'Ᏸ',C:'Ꮳ',D:'Ꮄ',E:'Ꮛ',F:'Ꮈ',G:'Ꮆ',H:'Ꮒ',I:'Ꭵ',J:'Ꮰ',K:'Ꮶ',L:'Ꮮ',M:'Ꮇ',N:'Ꮑ',O:'Ꭷ',P:'Ꭾ',Q:'Ꭴ',R:'Ꮢ',S:'Ꮥ',T:'Ꮦ',U:'Ꮼ',V:'Ꮙ',W:'Ꮗ',X:'ጀ',Y:'Ꭹ',Z:'ፚ'
   };
 
   // Wizard (formerly Fantasy Script)
   const WIZARD = {
     a:'ǟ',b:'ɮ',c:'ƈ',d:'ɖ',e:'ɛ',f:'ʄ',g:'ɢ',h:'ɦ',i:'ɨ',j:'ʝ',k:'ӄ',l:'ʟ',m:'ʍ',n:'ռ',o:'օ',p:'ք',q:'զ',r:'ʀ',s:'ֆ',t:'ȶ',u:'ʊ',v:'ʋ',w:'ա',x:'Ӽ',y:'ʏ',z:'ʐ',
-    A:'ǟ',B:'ɮ',C:'ƈ',D:'ɖ',E:'ɛ',F:'ʄ',G:'ɢ',H:'ɦ',I:'ɨ',J:'ʝ',K:'ӄ',L:'ʟ',M:'ʍ',N:'ռ',O:'օ',P:'ք',Q:'զ',R:'ʀ',S:'ֆ',T:'ȶ',U:'ʊ',V:'ʋ',W:'ա',X:'Ӽ',Y:'ʏ',Z:'ʐ'
+    A:'Ǟ',B:'ɮ',C:'ƈ',D:'ɖ',E:'ɛ',F:'ʄ',G:'ɢ',H:'ɦ',I:'ɨ',J:'ʝ',K:'ӄ',L:'ʟ',M:'ʍ',N:'ռ',O:'օ',P:'ք',Q:'զ',R:'ʀ',S:'ֆ',T:'ȶ',U:'ʊ',V:'ʋ',W:'ա',X:'Ӽ',Y:'ʏ',Z:'ʐ'
+  };
+
+  // Symbolic (new)
+  const SYMBOLIC = {
+    a:'ꍏ',b:'♭',c:'☾',d:'◗',e:'€',f:'Ϝ',g:'❡',h:'♄',i:'♗',j:'♪',k:'ϰ',l:'↳',m:'♔',n:'♫',o:'⊙',p:'ρ',q:'☭',r:'☈',s:'ⓢ',t:'☂',u:'☋',v:'✓',w:'ω',x:'⌘',y:'☿',z:'☡',
+    A:'ꍏ',B:'♭',C:'☾',D:'◗',E:'€',F:'Ϝ',G:'❡',H:'♄',I:'♗',J:'♪',K:'ϰ',L:'↳',M:'♔',N:'♫',O:'⊙',P:'ρ',Q:'☭',R:'☈',S:'ⓢ',T:'☂',U:'☋',V:'✓',W:'ω',X:'⌘',Y:'☿',Z:'☡'
   };
 
   // Mystic
@@ -154,19 +160,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // Decorative Latin
   const DECORATIVE_LATIN = {
     a:'å',b:'β',c:'ç',d:'ð',e:'ê',f:'ƒ',g:'g',h:'ħ',i:'ï',j:'ʝ',k:'κ',l:'ℓ',m:'ɱ',n:'ñ',o:'ο',p:'þ',q:'q',r:'ř',s:'§',t:'†',u:'ü',v:'v',w:'ω',x:'χ',y:'¥',z:'ž',
-    A:'Å',B:'Β',C:'Ç',D:'Ð',E:'Ê',F:'Ƒ',G:'G',H:'Ħ',I:'Ï',J:'ʝ',K:'Κ',L:'Ł',M:'Ɱ',N:'Ñ',O:'Ο',P:'Þ',Q:'Q',R:'Ř',S:'§',T:'†',U:'Ü',V:'V',W:'Ω',X:'Χ',Y:'¥',Z:'Ž'
-  };
-
-  // Techno
-  const TECHNO = {
-    a:'Δ',b:'β',c:'C',d:'D',e:'€',f:'F',g:'G',h:'Ħ',i:'Ɨ',j:'J',k:'K',l:'L',m:'M',n:'Ň',o:'Ø',p:'P',q:'Q',r:'R',s:'Ş',t:'Ŧ',u:'U',v:'V',w:'W',x:'X',y:'¥',z:'Z',
-    A:'Δ',B:'β',C:'C',D:'D',E:'€',F:'F',G:'G',H:'Ħ',I:'Ɨ',J:'J',K:'K',L:'L',M:'M',N:'Ň',O:'Ø',P:'P',Q:'Q',R:'R',S:'Ş',T:'Ŧ',U:'U',V:'V',W:'W',X:'X',Y:'¥',Z:'Z'
+    A:'Å',B:'Β',C:'Ç',D:'Ð',E:'Ê',F:'Ƒ',G:'G',H:'Ħ',I:'Ï',J:'ʝ',K:'Κ',L:'Ł',M:'Ɱ',N:'Ñ',O:'Ο',P:'Þ',Q:'Q',R:'Ř',S:'§',T:'†',U:'Ü',V:'V',W:'₩',X:'Χ',Y:'¥',Z:'Ž'
   };
 
   // Cyberpunk
   const CYBERPUNK = {
-    a:'Δ',b:'β',c:'C',d:'D',e:'Ɇ',f:'F',g:'G',h:'Ħ',i:'Ɨ',j:'J',k:'K',l:'L',m:'M',n:'Ň',o:'Ø',p:'P',q:'Q',r:'R',s:'Ș',t:'Ŧ',u:'U',v:'V',w:'W',x:'X',y:'Ɏ',z:'Z',
-    A:'Δ',B:'β',C:'C',D:'D',E:'Ɇ',F:'F',G:'G',H:'Ħ',I:'Ɨ',J:'J',K:'K',L:'L',M:'M',N:'Ň',O:'Ø',P:'P',Q:'Q',R:'R',S:'Ș',T:'Ŧ',U:'U',V:'V',W:'W',X:'X',Y:'Ɏ',Z:'Z'
+    a:'Δ',b:'β',c:'Ć',d:'Đ',e:'€',f:'₣',g:'Ǥ',h:'Ħ',i:'Ɨ',j:'Ĵ',k:'Ҝ',l:'Ł',m:'Μ',n:'Ň',o:'Ø',p:'Ƥ',q:'Ω',r:'Ř',s:'Ş',t:'Ŧ',u:'Ữ',v:'V',w:'Ŵ',x:'Ж',y:'¥',z:'Ž',
+    A:'Δ',B:'β',C:'Ć',D:'Đ',E:'€',F:'₣',G:'Ǥ',H:'Ħ',I:'Ɨ',J:'Ĵ',K:'Ҝ',L:'Ł',M:'Μ',N:'Ň',O:'Ø',P:'Ƥ',Q:'Ω',R:'Ř',S:'Ş',T:'Ŧ',U:'Ữ',V:'V',W:'Ŵ',X:'Ж',Y:'¥',Z:'Ž'
   };
 
   // Greek Fusion
@@ -175,28 +175,22 @@ document.addEventListener('DOMContentLoaded', function () {
     A:'λ',B:'β',C:'Ć',D:'δ',E:'ε',F:'ƒ',G:'Ģ',H:'ħ',I:'ί',J:'ĵ',K:'κ',L:'ℓ',M:'ɱ',N:'ɴ',O:'Θ',P:'ρ',Q:'q',R:'ર',S:'Ș',T:'τ',U:'µ',V:'v',W:'ω',X:'χ',Y:'ϓ',Z:'ζ'
   };
 
-  // Greek Capitals
-  const GREEK_CAPITALS = {
-    a:'Λ',b:'B',c:'C',d:'D',e:'Σ',f:'F',g:'G',h:'Ή',i:'I',j:'J',k:'K',l:'L',m:'M',n:'П',o:'Ө',p:'P',q:'Q',r:'Я',s:'Ƨ',t:'Ƭ',u:'U',v:'V',w:'W',x:'X',y:'Ƴ',z:'Z',
-    A:'Λ',B:'B',C:'C',D:'D',E:'Σ',F:'F',G:'G',H:'Ή',I:'I',J:'J',K:'K',L:'L',M:'M',N:'П',O:'Ө',P:'P',Q:'Q',R:'Я',S:'Ƨ',T:'Ƭ',U:'U',V:'V',W:'W',X:'X',Y:'Ƴ',Z:'Z'
-  };
-
   // Slashed Latin
   const SLASHED_LATIN = {
-    a:'ⱥ',b:'ƀ',c:'ȼ',d:'đ',e:'ɇ',f:'ƒ',g:'ǥ',h:'ħ',i:'ɨ',j:'ɉ',k:'ꝁ',l:'ł',m:'ɱ',n:'n',o:'ø',p:'ᵽ',q:'ꝗ',r:'ɍ',s:'ꞩ',t:'ŧ',u:'ʉ',v:'v',w:'w',x:'x',y:'ɏ',z:'ƶ',
-    A:'Ⱥ',B:'Ƀ',C:'Ȼ',D:'Đ',E:'Ɇ',F:'Ƒ',G:'Ǥ',H:'Ħ',I:'Ɨ',J:'Ɉ',K:'Ꝁ',L:'Ł',M:'Ɱ',N:'N',O:'Ø',P:'Ᵽ',Q:'Ꝗ',R:'Ɍ',S:'Ꞩ',T:'Ŧ',U:'Ʉ',V:'V',W:'W',X:'X',Y:'Ɏ',Z:'Ƶ'
+    a:'ⱥ',b:'ƀ',c:'ȼ',d:'đ',e:'ɇ',f:'ƒ',g:'ǥ',h:'ħ',i:'ɨ',j:'ɉ',k:'ꝁ',l:'ł',m:'ɱ',n:'₦',o:'ø',p:'ᵽ',q:'ꝗ',r:'ɍ',s:'ꞩ',t:'ŧ',u:'ʉ',v:'v',w:'₩',x:'Ӿ',y:'ɏ',z:'ƶ',
+    A:'Ⱥ',B:'Ƀ',C:'Ȼ',D:'Đ',E:'Ɇ',F:'Ƒ',G:'Ǥ',H:'Ħ',I:'Ɨ',J:'Ɉ',K:'Ꝁ',L:'Ł',M:'Ɱ',N:'₦',O:'Ø',P:'Ᵽ',Q:'Ꝗ',R:'Ɍ',S:'Ꞩ',T:'Ŧ',U:'Ʉ',V:'V',W:'₩',X:'Ӿ',Y:'Ɏ',Z:'Ƶ'
   };
 
   // Rusify (formerly Russian Lookalike) — duplicates fixed for uniqueness
   const RUSIFY = {
-    a:'а',b:'б',c:'ц',d:'д',e:'є',f:'ф',g:'г',h:'н',i:'і',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'ԛ',r:'я',s:'с',t:'т',u:'у',v:'в',w:'ш',x:'ж',y:'ý',z:'з',
-    A:'А',B:'Б',C:'Ц',D:'Д',E:'Є',F:'Ф',G:'Г',H:'Н',I:'І',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'О',P:'Р',Q:'Ԛ',R:'Я',S:'С',T:'Т',U:'У',V:'В',W:'Ш',X:'Ж',Y:'Ý',Z:'З'
+    a:'a',b:'б',c:'ц',d:'д',e:'є',f:'ф',g:'г',h:'н',i:'і',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'о',p:'р',q:'q',r:'я',s:'с',t:'т',u:'ū',v:'в',w:'ш',x:'ж',y:'у',z:'з',
+    A:'A',B:'Б',C:'Ц',D:'Д',E:'Є',F:'Ф',G:'Г',H:'Н',I:'І',J:'Ј',K:'К',L:'Л',M:'Ѫ',N:'Й',O:'О',P:'Р',Q:'Ǫ',R:'Я',S:'С',T:'Т',U:'Ū',V:'В',W:'Ш',X:'Ж',Y:'У',Z:'З'
   };
 
   // Soviet (formerly Cyber Cyrillic) — Latin p fixed, y made distinct
   const SOVIET = {
-    a:'ӓ',b:'б',c:'ц',d:'д',e:'э',f:'ф',g:'ѓ',h:'ћ',i:'ї',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'ѳ',p:'р',q:'ǫ',r:'г',s:'ş',t:'ҭ',u:'ӳ',v:'в',w:'ш',x:'ж',y:'ў',z:'ƶ',
-    A:'Ӓ',B:'Б',C:'Ц',D:'Д',E:'Э',F:'Ф',G:'Ѓ',H:'Ћ',I:'Ї',J:'Ј',K:'К',L:'Л',M:'М',N:'И',O:'Ѳ',P:'Р',Q:'Ǫ',R:'Г',S:'Ş',T:'Ҭ',U:'Ӳ',V:'В',W:'Ш',X:'Ж',Y:'Ў',Z:'Ƶ'
+    a:'ӓ',b:'б',c:'ц',d:'д',e:'э',f:'ф',g:'ѓ',h:'ћ',i:'ї',j:'ј',k:'к',l:'л',m:'м',n:'и',o:'ѳ',p:'p',q:'ǫ',r:'г',s:'ş',t:'ҭ',u:'ў',v:'в',w:'ш',x:'ж',y:'ӳ',z:'ƶ',
+    A:'Ӓ',B:'Б',C:'Ц',D:'Д',E:'Э',F:'Ф',G:'Ѓ',H:'Ћ',I:'Ї',J:'Ј',K:'К',L:'Л',M:'Ѫ',N:'Й',O:'Ѳ',P:'P',Q:'Ǫ',R:'Г',S:'Ş',T:'Ҭ',U:'Ў',V:'В',W:'Ш',X:'Ж',Y:'Ӳ',Z:'Ƶ'
   };
 
   // Lisu Style
@@ -226,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Hieroglyphs (new)
   const HIEROGLYPHS = {
     a:'Թ',b:'Ϧ',c:'ƈ',d:'ɖ',e:'ȝ',f:'ք',g:'ɡ',h:'ɧ',i:'ɿ',j:'ј',k:'ƙ',l:'ʟ',m:'ʍ',n:'ռ',o:'ծ',p:'ρ',q:'ϙ',r:'ɾ',s:'ʂ',t:'ɛ',u:'մ',v:'ν',w:'ɯ',x:'ӿ',y:'վ',z:'ȥ',
-    A:'Թ',B:'Ϧ',C:'ƈ',D:'ɖ',E:'ȝ',F:'ք',G:'ɡ',H:'ɧ',I:'ɿ',J:'ј',K:'ƙ',L:'ʟ',M:'ʍ',N:'ռ',O:'ծ',P:'ρ',Q:'ϙ',R:'ɾ',S:'ʂ',T:'ɛ',U:'մ',V:'ν',W:'ɯ',X:'ӿ',Y:'վ',Z:'ȥ'
+    A:'Թ',B:'Ϧ',C:'Ƈ',D:'Ɖ',E:'Ȝ',F:'Ք',G:'Գ',H:'ɧ',I:'Ɨ',J:'Ј',K:'Ƙ',L:'Ʂ',M:'ʍ',N:'Ռ',O:'Ծ',P:'Ρ',Q:'Ϙ',R:'Ր',S:'Տ',T:'Ե',U:'Մ',V:'Ѵ',W:'Ɯ',X:'Ӿ',Y:'Վ',Z:'Ȥ'
   };
 
   // Yangtan (new)
@@ -355,14 +349,13 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
     { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
     { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
+    { key: 'symbolic',       title: 'Symbolic',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SYMBOLIC) },
     { key: 'shadowscript',   title: 'Shadow Script',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SHADOW_SCRIPT) },
     { key: 'thaifusion',     title: 'Thai Fusion',      safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, THAI_FUSION) },
     { key: 'hiddenheritage', title: 'Hidden Heritage',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIDDEN_HERITAGE) },
     { key: 'decorativelatin',title: 'Decorative Latin', safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_LATIN) },
-    { key: 'techno',         title: 'Techno',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, TECHNO) },
     { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'greekfusion',    title: 'Greek Fusion',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_FUSION) },
-    { key: 'greekcapitals',  title: 'Greek Capitals',   safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_CAPITALS) },
     { key: 'moderngreek',    title: 'Modern Greek',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MODERN_GREEK) },
     { key: 'wisecharacters', title: 'Wise Characters',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WISE_CHARACTERS) },
     { key: 'slashedlatin',   title: 'Slashed Latin',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SLASHED_LATIN) },
