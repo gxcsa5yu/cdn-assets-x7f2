@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const ta = document.getElementById('tpx-stg-input');
-  const grid = document.getElementById('tpx-stg-fonts-grid');
-  const defaultStylesContainer = document.getElementById('tpx-stg-default-styles');
-  const extraStyles = document.getElementById('tpx-stg-extra-styles');
-  const announcer = document.getElementById('tpx-stg-sr-announcer');
+  const ta = document.getElementById('tpx-ftg-input');
+  const grid = document.getElementById('tpx-ftg-fonts-grid');
+  const defaultStylesContainer = document.getElementById('tpx-ftg-default-styles');
+  const extraStyles = document.getElementById('tpx-ftg-extra-styles');
+  const announcer = document.getElementById('tpx-ftg-sr-announcer');
   let extraStylesRevealed = false;
 
   /* ---- Conversion engine ---- */
@@ -310,6 +310,14 @@ document.addEventListener('DOMContentLoaded', function () {
     risk: 'Often shows as boxes on some platforms'
   };
 
+  // BUG FIX: the crown/fire styles previously embedded literal emoji characters
+  // (👑 / 🔥) inside JS string literals. Per ToolPX's established WordPress
+  // deployment rule ("Emoji in JS strings must be avoided — WordPress mangles
+  // them"), these are now built from their Unicode code points instead, which
+  // is safe regardless of how/where this file ends up being edited or embedded.
+  const EMOJI_CROWN = String.fromCodePoint(0x1F451);
+  const EMOJI_FIRE = String.fromCodePoint(0x1F525);
+
   const STYLE_DEFS = [
     // Default group
     { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
@@ -344,8 +352,8 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'altline',        title: 'Alternating Line', safety: 'safe', group: 'extra', size: 1.00, fn: t => applyAlternating(t, '\u0332', '\u0305') },
     { key: 'ringabove',      title: 'Ring Above',       safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u030A') },
     { key: 'wavy',           title: 'Wavy',             safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0334') },
-    { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => '👑 ' + t + ' 👑' },
-    { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => '🔥 ' + t + ' 🔥' },
+    { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_CROWN + ' ' + t + ' ' + EMOJI_CROWN },
+    { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_FIRE + ' ' + t + ' ' + EMOJI_FIRE },
     { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
     { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
     { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
@@ -386,71 +394,71 @@ document.addEventListener('DOMContentLoaded', function () {
     const key = def.key;
     const scale = def.size || 1;
     return (
-      '<div class="tpx-stg-font-card tpx-stg-card-empty" id="tpx-stg-card-' + key + '">' +
-        '<div class="tpx-stg-card-left">' +
-          '<div class="tpx-stg-card-header">' +
-            '<div class="tpx-stg-card-title-wrap">' +
-              '<span class="tpx-stg-safety-dot ' + def.safety + '" role="img" aria-label="Compatibility: ' + label + '"></span>' +
-              '<span class="tpx-stg-card-title">' + def.title + '</span>' +
+      '<div class="tpx-ftg-font-card tpx-ftg-card-empty" id="tpx-ftg-card-' + key + '">' +
+        '<div class="tpx-ftg-card-left">' +
+          '<div class="tpx-ftg-card-header">' +
+            '<div class="tpx-ftg-card-title-wrap">' +
+              '<span class="tpx-ftg-safety-dot ' + def.safety + '" role="img" aria-label="Compatibility: ' + label + '"></span>' +
+              '<span class="tpx-ftg-card-title">' + def.title + '</span>' +
             '</div>' +
-            '<div class="tpx-stg-card-actions">' +
-              '<button type="button" class="tpx-stg-copy-btn" data-key="' + key + '" aria-label="Copy ' + def.title + ' text">' + iconUse('icon-copy') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-btn" data-key="' + key + '" aria-label="Preview ' + def.title + ' on social platforms" title="Preview on social platforms">' + iconUse('icon-preview') + '</button>' +
-              '<button type="button" class="tpx-stg-download-btn" data-key="' + key + '" aria-label="Download ' + def.title + ' text">' + iconUse('icon-download') + '</button>' +
+            '<div class="tpx-ftg-card-actions">' +
+              '<button type="button" class="tpx-ftg-copy-btn" data-key="' + key + '" aria-label="Copy ' + def.title + ' text">' + iconUse('icon-copy') + '</button>' +
+              '<button type="button" class="tpx-ftg-preview-btn" data-key="' + key + '" aria-label="Preview ' + def.title + ' on social platforms" title="Preview on social platforms">' + iconUse('icon-preview') + '</button>' +
+              '<button type="button" class="tpx-ftg-download-btn" data-key="' + key + '" aria-label="Download ' + def.title + ' text">' + iconUse('icon-download') + '</button>' +
             '</div>' +
           '</div>' +
-          '<div class="tpx-stg-card-body tpx-stg-placeholder" data-key="' + key + '" style="--tpx-stg-scale:' + scale + '">Type something to start</div>' +
+          '<div class="tpx-ftg-card-body tpx-ftg-placeholder" data-key="' + key + '" style="--tpx-ftg-scale:' + scale + '">Type something to start</div>' +
         '</div>' +
-        '<div class="tpx-stg-preview-panel" id="tpx-stg-preview-' + key + '" data-key="' + key + '">' +
-          '<div class="tpx-stg-preview-stage">' +
-            '<div class="tpx-stg-pv-view tpx-stg-pv-ig" data-view="instagram">' +
-              '<div class="tpx-stg-pv-ig-top">' +
-                '<div class="tpx-stg-preview-avatar">' + iconUse('icon-person') + '</div>' +
-                '<div class="tpx-stg-pv-ig-right">' +
-                  '<div class="tpx-stg-pv-ig-name">Toolpx</div>' +
-                  '<div class="tpx-stg-pv-ig-stats">' +
-                    '<div class="tpx-stg-pv-ig-stat"><b>128</b><span>posts</span></div>' +
-                    '<div class="tpx-stg-pv-ig-stat"><b>2,024</b><span>followers</span></div>' +
-                    '<div class="tpx-stg-pv-ig-stat"><b>75</b><span>following</span></div>' +
+        '<div class="tpx-ftg-preview-panel" id="tpx-ftg-preview-' + key + '" data-key="' + key + '">' +
+          '<div class="tpx-ftg-preview-stage">' +
+            '<div class="tpx-ftg-pv-view tpx-ftg-pv-ig" data-view="instagram">' +
+              '<div class="tpx-ftg-pv-ig-top">' +
+                '<div class="tpx-ftg-preview-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-ftg-pv-ig-right">' +
+                  '<div class="tpx-ftg-pv-ig-name">Toolpx</div>' +
+                  '<div class="tpx-ftg-pv-ig-stats">' +
+                    '<div class="tpx-ftg-pv-ig-stat"><b>128</b><span>posts</span></div>' +
+                    '<div class="tpx-ftg-pv-ig-stat"><b>2,024</b><span>followers</span></div>' +
+                    '<div class="tpx-ftg-pv-ig-stat"><b>75</b><span>following</span></div>' +
                   '</div>' +
                 '</div>' +
               '</div>' +
-              '<div class="tpx-stg-pv-ig-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
-              '<div class="tpx-stg-pv-ig-link">' + iconUse('icon-link') + '<span>toolpx.com</span><span class="tpx-stg-pv-ig-more">and 3 more</span></div>' +
+              '<div class="tpx-ftg-pv-ig-bio tpx-ftg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+              '<div class="tpx-ftg-pv-ig-link">' + iconUse('icon-link') + '<span>toolpx.com</span><span class="tpx-ftg-pv-ig-more">and 3 more</span></div>' +
             '</div>' +
-            '<div class="tpx-stg-pv-view tpx-stg-pv-fb" data-view="facebook" hidden>' +
-              '<div class="tpx-stg-pv-fb-cover"></div>' +
-              '<div class="tpx-stg-pv-fb-body">' +
-                '<div class="tpx-stg-pv-fb-top">' +
-                  '<div class="tpx-stg-preview-avatar">' + iconUse('icon-person') + '</div>' +
-                  '<div class="tpx-stg-pv-fb-right">' +
-                    '<div class="tpx-stg-pv-fb-name">Toolpx <span class="tpx-stg-pv-fb-badge">' + iconUse('icon-badge-check') + '</span></div>' +
-                    '<div class="tpx-stg-pv-fb-stats"><b>17M</b> followers · <b>1</b> following · <b>1.5K</b> posts</div>' +
+            '<div class="tpx-ftg-pv-view tpx-ftg-pv-fb" data-view="facebook" hidden>' +
+              '<div class="tpx-ftg-pv-fb-cover"></div>' +
+              '<div class="tpx-ftg-pv-fb-body">' +
+                '<div class="tpx-ftg-pv-fb-top">' +
+                  '<div class="tpx-ftg-preview-avatar">' + iconUse('icon-person') + '</div>' +
+                  '<div class="tpx-ftg-pv-fb-right">' +
+                    '<div class="tpx-ftg-pv-fb-name">Toolpx <span class="tpx-ftg-pv-fb-badge">' + iconUse('icon-badge-check') + '</span></div>' +
+                    '<div class="tpx-ftg-pv-fb-stats"><b>17M</b> followers · <b>1</b> following · <b>1.5K</b> posts</div>' +
                   '</div>' +
                 '</div>' +
-                '<div class="tpx-stg-pv-fb-category">Page · Artist</div>' +
-                '<div class="tpx-stg-pv-fb-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+                '<div class="tpx-ftg-pv-fb-category">Page · Artist</div>' +
+                '<div class="tpx-ftg-pv-fb-bio tpx-ftg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
-            '<div class="tpx-stg-pv-view tpx-stg-pv-x" data-view="x" hidden>' +
-              '<div class="tpx-stg-pv-x-cover"></div>' +
-              '<div class="tpx-stg-pv-x-body">' +
-                '<div class="tpx-stg-preview-avatar tpx-stg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
-                '<div class="tpx-stg-pv-x-top-actions">' +
-                  '<div class="tpx-stg-pv-x-icon-btn" aria-label="Notifications">' + iconUse('icon-bell-plus') + '</div>' +
-                  '<button type="button" class="tpx-stg-pv-x-follow-btn">' + iconUse('icon-user-plus') + '<span>Follow</span></button>' +
+            '<div class="tpx-ftg-pv-view tpx-ftg-pv-x" data-view="x" hidden>' +
+              '<div class="tpx-ftg-pv-x-cover"></div>' +
+              '<div class="tpx-ftg-pv-x-body">' +
+                '<div class="tpx-ftg-preview-avatar tpx-ftg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-ftg-pv-x-top-actions">' +
+                  '<div class="tpx-ftg-pv-x-icon-btn" aria-label="Notifications">' + iconUse('icon-bell-plus') + '</div>' +
+                  '<button type="button" class="tpx-ftg-pv-x-follow-btn">' + iconUse('icon-user-plus') + '<span>Follow</span></button>' +
                 '</div>' +
-                '<div class="tpx-stg-pv-x-name">Toolpx <span class="tpx-stg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
-                '<div class="tpx-stg-pv-x-handle">@toolpx</div>' +
-                '<div class="tpx-stg-pv-x-bio tpx-stg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+                '<div class="tpx-ftg-pv-x-name">Toolpx <span class="tpx-ftg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
+                '<div class="tpx-ftg-pv-x-handle">@toolpx</div>' +
+                '<div class="tpx-ftg-pv-x-bio tpx-ftg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
-          '<div class="tpx-stg-preview-tabbar">' +
-            '<div class="tpx-stg-preview-tabgroup">' +
-              '<button type="button" class="tpx-stg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-stg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
+          '<div class="tpx-ftg-preview-tabbar">' +
+            '<div class="tpx-ftg-preview-tabgroup">' +
+              '<button type="button" class="tpx-ftg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
+              '<button type="button" class="tpx-ftg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
+              '<button type="button" class="tpx-ftg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -516,17 +524,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
-    const previewBios = grid.querySelectorAll('.tpx-stg-preview-bio[data-key="' + key + '"]');
+    const previewBios = grid.querySelectorAll('.tpx-ftg-preview-bio[data-key="' + key + '"]');
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
-      const view = el.closest('.tpx-stg-pv-view');
+      const view = el.closest('.tpx-ftg-pv-view');
       const platform = view ? view.dataset.view : null;
       previewPlaceholders[platform] = truncateForPlatform(placeholderText, PREVIEW_CHAR_LIMITS[platform]);
     });
     styleRefs[key] = {
-      body: grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]'),
-      card: document.getElementById('tpx-stg-card-' + key),
+      body: grid.querySelector('.tpx-ftg-card-body[data-key="' + key + '"]'),
+      card: document.getElementById('tpx-ftg-card-' + key),
       previewBios: previewBios,
       placeholderText: placeholderText,
       previewPlaceholders: previewPlaceholders
@@ -542,9 +550,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
 
-  const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
+  const moreStylesToggle = document.getElementById('tpx-ftg-more-styles-toggle');
   if (moreStylesToggle && extraStyles) {
-    const moreStylesText = moreStylesToggle.querySelector('.tpx-stg-more-styles-text');
+    const moreStylesText = moreStylesToggle.querySelector('.tpx-ftg-more-styles-text');
     moreStylesToggle.addEventListener('click', function () {
       const isExpanded = moreStylesToggle.getAttribute('aria-expanded') === 'true';
       moreStylesToggle.setAttribute('aria-expanded', String(!isExpanded));
@@ -568,20 +576,20 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!refs || !refs.body) return;
       if (isEmpty) {
         refs.body.textContent = refs.placeholderText;
-        refs.body.classList.add('tpx-stg-placeholder');
-        refs.card.classList.add('tpx-stg-card-empty');
+        refs.body.classList.add('tpx-ftg-placeholder');
+        refs.card.classList.add('tpx-ftg-card-empty');
         refs.previewBios.forEach(function (el) {
-          const view = el.closest('.tpx-stg-pv-view');
+          const view = el.closest('.tpx-ftg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = refs.previewPlaceholders[platform];
         });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
-        refs.body.classList.remove('tpx-stg-placeholder');
-        refs.card.classList.remove('tpx-stg-card-empty');
+        refs.body.classList.remove('tpx-ftg-placeholder');
+        refs.card.classList.remove('tpx-ftg-card-empty');
         refs.previewBios.forEach(function (el) {
-          const view = el.closest('.tpx-stg-pv-view');
+          const view = el.closest('.tpx-ftg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
         });
@@ -598,9 +606,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
     const chars = text.replace(/\n/g, '').length;
     const charsNoSpaces = text.replace(/\s/g, '').length;
-    document.getElementById('tpx-stg-val-words').textContent = words.toLocaleString();
-    document.getElementById('tpx-stg-val-chars').textContent = chars.toLocaleString();
-    document.getElementById('tpx-stg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
+    document.getElementById('tpx-ftg-val-words').textContent = words.toLocaleString();
+    document.getElementById('tpx-ftg-val-chars').textContent = chars.toLocaleString();
+    document.getElementById('tpx-ftg-val-chars-ns').textContent = charsNoSpaces.toLocaleString();
     updateTimeline(chars);
     renderKeys(getActiveKeys(), text, text.trim() === '');
   }
@@ -616,8 +624,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ---- Info toggle ---- */
-  const infoToggle = document.getElementById('tpx-stg-info-toggle');
-  const infoBody = document.getElementById('tpx-stg-info-body');
+  const infoToggle = document.getElementById('tpx-ftg-info-toggle');
+  const infoBody = document.getElementById('tpx-ftg-info-body');
   if (infoToggle && infoBody) {
     infoToggle.addEventListener('click', function () {
       const isExpanded = infoToggle.getAttribute('aria-expanded') === 'true';
@@ -629,34 +637,34 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ---- Escape closes open previews ---- */
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    document.querySelectorAll('.tpx-stg-preview-panel.is-open').forEach(function (panel) {
+    document.querySelectorAll('.tpx-ftg-preview-panel.is-open').forEach(function (panel) {
       panel.classList.remove('is-open');
       const key = panel.dataset.key;
-      const btn = grid.querySelector('.tpx-stg-preview-btn[data-key="' + key + '"]');
-      const card = document.getElementById('tpx-stg-card-' + key);
-      if (btn) btn.classList.remove('tpx-stg-preview-active');
-      if (card) card.classList.remove('tpx-stg-preview-is-open');
+      const btn = grid.querySelector('.tpx-ftg-preview-btn[data-key="' + key + '"]');
+      const card = document.getElementById('tpx-ftg-card-' + key);
+      if (btn) btn.classList.remove('tpx-ftg-preview-active');
+      if (card) card.classList.remove('tpx-ftg-preview-is-open');
     });
   });
 
   function flashCopied(btn, announceLabel) {
     btn.innerHTML = ICON_CHECK;
-    btn.classList.add('tpx-stg-copied');
+    btn.classList.add('tpx-ftg-copied');
     if (announceLabel) announce(announceLabel);
     setTimeout(function () {
       btn.innerHTML = ICON_COPY;
-      btn.classList.remove('tpx-stg-copied');
+      btn.classList.remove('tpx-ftg-copied');
     }, 1500);
   }
 
   function copyCardText(key) {
-    const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
+    const body = grid.querySelector('.tpx-ftg-card-body[data-key="' + key + '"]');
     if (!body) return;
     const value = body.textContent;
-    if (!value || body.classList.contains('tpx-stg-placeholder')) return;
-    const card = document.getElementById('tpx-stg-card-' + key);
-    const styleName = card ? card.querySelector('.tpx-stg-card-title').textContent : 'Text';
-    const copyBtn = grid.querySelector('.tpx-stg-copy-btn[data-key="' + key + '"]');
+    if (!value || body.classList.contains('tpx-ftg-placeholder')) return;
+    const card = document.getElementById('tpx-ftg-card-' + key);
+    const styleName = card ? card.querySelector('.tpx-ftg-card-title').textContent : 'Text';
+    const copyBtn = grid.querySelector('.tpx-ftg-copy-btn[data-key="' + key + '"]');
     navigator.clipboard.writeText(value).then(function () {
       if (copyBtn) flashCopied(copyBtn, styleName + ' copied');
       else announce(styleName + ' copied');
@@ -666,32 +674,32 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   grid.addEventListener('click', function (e) {
-    const copyBtn = e.target.closest('.tpx-stg-copy-btn');
-    const dlBtn = e.target.closest('.tpx-stg-download-btn');
-    const previewBtn = e.target.closest('.tpx-stg-preview-btn');
-    const tabBtn = e.target.closest('.tpx-stg-preview-tab');
-    const cardLeft = e.target.closest('.tpx-stg-card-left');
+    const copyBtn = e.target.closest('.tpx-ftg-copy-btn');
+    const dlBtn = e.target.closest('.tpx-ftg-download-btn');
+    const previewBtn = e.target.closest('.tpx-ftg-preview-btn');
+    const tabBtn = e.target.closest('.tpx-ftg-preview-tab');
+    const cardLeft = e.target.closest('.tpx-ftg-card-left');
 
     if (previewBtn) {
       const key = previewBtn.dataset.key;
-      const panel = document.getElementById('tpx-stg-preview-' + key);
-      const outerCard = document.getElementById('tpx-stg-card-' + key);
+      const panel = document.getElementById('tpx-ftg-preview-' + key);
+      const outerCard = document.getElementById('tpx-ftg-card-' + key);
       if (panel) {
         const willOpen = !panel.classList.contains('is-open');
         panel.classList.toggle('is-open', willOpen);
-        previewBtn.classList.toggle('tpx-stg-preview-active', willOpen);
-        if (outerCard) outerCard.classList.toggle('tpx-stg-preview-is-open', willOpen);
+        previewBtn.classList.toggle('tpx-ftg-preview-active', willOpen);
+        if (outerCard) outerCard.classList.toggle('tpx-ftg-preview-is-open', willOpen);
       }
       return;
     }
 
     if (tabBtn) {
-      const panel = tabBtn.closest('.tpx-stg-preview-panel');
+      const panel = tabBtn.closest('.tpx-ftg-preview-panel');
       const platform = tabBtn.dataset.platform;
-      panel.querySelectorAll('.tpx-stg-preview-tab').forEach(function (t) {
+      panel.querySelectorAll('.tpx-ftg-preview-tab').forEach(function (t) {
         t.classList.toggle('is-active', t === tabBtn);
       });
-      panel.querySelectorAll('.tpx-stg-pv-view').forEach(function (v) {
+      panel.querySelectorAll('.tpx-ftg-pv-view').forEach(function (v) {
         v.hidden = v.dataset.view !== platform;
       });
       return;
@@ -704,9 +712,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (dlBtn) {
       const key = dlBtn.dataset.key;
-      const body = grid.querySelector('.tpx-stg-card-body[data-key="' + key + '"]');
+      const body = grid.querySelector('.tpx-ftg-card-body[data-key="' + key + '"]');
       const value = body.textContent;
-      if (!value || body.classList.contains('tpx-stg-placeholder')) return;
+      if (!value || body.classList.contains('tpx-ftg-placeholder')) return;
       const blob = new Blob([value], { type: 'text/plain;charset=utf-8' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -719,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (cardLeft) {
-      const body = cardLeft.querySelector('.tpx-stg-card-body');
+      const body = cardLeft.querySelector('.tpx-ftg-card-body');
       const key = body ? body.dataset.key : null;
       if (key) copyCardText(key);
     }
@@ -738,23 +746,26 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ---- Footer actions ---- */
-  document.getElementById('tpx-stg-btn-paste').addEventListener('click', function () {
+  document.getElementById('tpx-ftg-btn-paste').addEventListener('click', function () {
+    // BUG FIX: previously failed silently (no feedback) when clipboard
+    // permission was denied or unavailable — now announces the failure.
     navigator.clipboard.readText().then(function (t) {
       ta.value += t;
       render();
       ta.focus();
     }).catch(function () {
+      announce('Could not paste — check clipboard permission');
       ta.focus();
     });
   });
 
-  document.getElementById('tpx-stg-btn-clear').addEventListener('click', function () {
+  document.getElementById('tpx-ftg-btn-clear').addEventListener('click', function () {
     ta.value = '';
     render();
     ta.focus();
   });
 
-  document.getElementById('tpx-stg-btn-copy').addEventListener('click', function () {
+  document.getElementById('tpx-ftg-btn-copy').addEventListener('click', function () {
     if (!ta.value.trim()) return;
     const btn = this;
     navigator.clipboard.writeText(ta.value).then(function () {
@@ -764,11 +775,31 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  document.getElementById('tpx-stg-btn-upload').addEventListener('click', function () {
-    document.getElementById('tpx-stg-file-uploader').click();
+  document.getElementById('tpx-ftg-btn-upload').addEventListener('click', function () {
+    document.getElementById('tpx-ftg-file-uploader').click();
   });
 
-  document.getElementById('tpx-stg-file-uploader').addEventListener('change', function (e) {
+  // BUG FIX: .docx uploads previously did nothing but announce a TODO message
+  // ("wire up as in Word Counter") — the file input still advertised .docx
+  // support via `accept`, so this silently failed for every real user who
+  // uploaded a Word file. Now mirrors the PDF/Word Counter pattern: lazily
+  // load Mammoth.js from CDN and extract the raw text client-side (the file
+  // itself never leaves the browser, matching ToolPX's privacy promise).
+  let mammothLoadPromise = null;
+  function loadMammoth() {
+    if (window.mammoth) return Promise.resolve();
+    if (mammothLoadPromise) return mammothLoadPromise;
+    mammothLoadPromise = new Promise(function (resolve, reject) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    return mammothLoadPromise;
+  }
+
+  document.getElementById('tpx-ftg-file-uploader').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     const ext = file.name.split('.').pop().toLowerCase();
@@ -778,9 +809,32 @@ document.addEventListener('DOMContentLoaded', function () {
         ta.value = evt.target.result;
         render();
       };
+      reader.onerror = function () {
+        announce('Could not read that file');
+      };
       reader.readAsText(file);
+    } else if (ext === 'docx') {
+      loadMammoth().then(function () {
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          window.mammoth.extractRawText({ arrayBuffer: evt.target.result })
+            .then(function (result) {
+              ta.value = result.value;
+              render();
+            })
+            .catch(function () {
+              announce('Could not read that .docx file');
+            });
+        };
+        reader.onerror = function () {
+          announce('Could not read that file');
+        };
+        reader.readAsArrayBuffer(file);
+      }).catch(function () {
+        announce('Could not load the document reader — check your connection');
+      });
     } else {
-      announce('DOCX parsing uses Mammoth.js — wire up as in Word Counter');
+      announce('Unsupported file type — upload a .txt or .docx file');
     }
     this.value = '';
   });
