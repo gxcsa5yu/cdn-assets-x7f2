@@ -319,9 +319,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const STYLE_DEFS = [
     // Default group
-    { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'italic',         title: 'Italic',           safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
+    // BUG FIX: Bold / Italic / Bold Italic previously reused the exact same
+    // Unicode code points as Serif Bold / Serif Italic / Serif Bold Italic,
+    // so the two "different" styles rendered identically. They now map to
+    // the separate Mathematical Sans-Serif Unicode blocks, which is what
+    // "Bold" (as opposed to "Serif Bold") is supposed to be.
+    { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D5D4, 0x1D5EE, 0x1D7EC, {}) },
+    { key: 'italic',         title: 'Italic',           safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D608, 0x1D622, null, {}) },
+    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
     { key: 'serifbold',      title: 'Serif Bold',       safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
     { key: 'serifitalic',    title: 'Serif Italic',     safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
     { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
@@ -566,7 +571,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const moreStylesToggle = document.getElementById('tpx-itg-more-styles-toggle');
   if (moreStylesToggle && extraStyles) {
-    // Ensure extra styles container starts visible for progressive loading
     extraStyles.hidden = false;
     extraStyles.removeAttribute('hidden');
 
@@ -768,8 +772,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---- Footer actions ---- */
   document.getElementById('tpx-itg-btn-paste').addEventListener('click', function () {
-    // BUG FIX: previously failed silently (no feedback) when clipboard
-    // permission was denied or unavailable — now announces the failure.
     navigator.clipboard.readText().then(function (t) {
       ta.value += t;
       render();
@@ -800,12 +802,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tpx-itg-file-uploader').click();
   });
 
-  // BUG FIX: .docx uploads previously did nothing but announce a TODO message
-  // ("wire up as in Word Counter") — the file input still advertised .docx
-  // support via `accept`, so this silently failed for every real user who
-  // uploaded a Word file. Now mirrors the PDF/Word Counter pattern: lazily
-  // load Mammoth.js from CDN and extract the raw text client-side (the file
-  // itself never leaves the browser, matching ToolPX's privacy promise).
   let mammothLoadPromise = null;
   function loadMammoth() {
     if (window.mammoth) return Promise.resolve();
