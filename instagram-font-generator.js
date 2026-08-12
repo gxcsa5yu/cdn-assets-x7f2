@@ -324,12 +324,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // so the two "different" styles rendered identically. They now map to
     // the separate Mathematical Sans-Serif Unicode blocks, which is what
     // "Bold" (as opposed to "Serif Bold") is supposed to be.
+    // BUG FIX: Bold/Italic/Bold Italic and their Serif counterparts all come
+    // from the same Mathematical Alphanumeric Symbols Unicode block
+    // (U+1D400-U+1D7FF) — a font that renders one renders all of them, so
+    // they must share the same compatibility rating. They were previously
+    // split (Bold/Serif Bold = safe, the other four = warn) for no reason
+    // tied to actual character support.
     { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D5D4, 0x1D5EE, 0x1D7EC, {}) },
-    { key: 'italic',         title: 'Italic',           safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D608, 0x1D622, null, {}) },
-    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
+    { key: 'italic',         title: 'Italic',           safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D608, 0x1D622, null, {}) },
+    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
     { key: 'serifbold',      title: 'Serif Bold',       safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'serifitalic',    title: 'Serif Italic',     safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
+    { key: 'serifitalic',    title: 'Serif Italic',     safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
     { key: 'smallcaps',      title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.00, fn: t => mapLookup(t, SMALLCAPS) },
     { key: 'monospace',      title: 'Monospace',        safety: 'warn', group: 'default', size: 1.00, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
 
@@ -340,13 +346,22 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'fraktur',        title: 'Fraktur',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
     { key: 'frakturbold',    title: 'Fraktur Bold',     safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D56C, 0x1D586, null, {}) },
     { key: 'spaced',         title: 'Spaced',           safety: 'safe', group: 'extra', size: 0.95, fn: fullwidth },
-    { key: 'circled',        title: 'Circled',          safety: 'warn', group: 'extra', size: 0.90, fn: circled },
+    // BUG FIX: Circled uses the classic Enclosed Alphanumerics BMP block
+    // (U+24B6 etc.), which has been part of standard system fonts since
+    // Unicode 1.1 — genuinely well supported, so it's now 'safe'. Squared,
+    // Negative Circled, and Negative Squared all instead come from the
+    // Enclosed Alphanumeric Supplement astral block (U+1F110-1F189) — a
+    // much newer, emoji-adjacent range with real gaps in support — and
+    // Parenthesized shares that same block. All four now share the same
+    // 'risk' rating instead of being split warn/risk for no block-based
+    // reason.
+    { key: 'circled',        title: 'Circled',          safety: 'safe', group: 'extra', size: 0.90, fn: circled },
     { key: 'negcircled',     title: 'Negative Circled', safety: 'risk', group: 'extra', size: 1.10, fn: negativeCircled },
-    { key: 'squared',        title: 'Squared',          safety: 'warn', group: 'extra', size: 0.90, fn: squared },
+    { key: 'squared',        title: 'Squared',          safety: 'risk', group: 'extra', size: 0.90, fn: squared },
     { key: 'negsquared',     title: 'Negative Squared', safety: 'risk', group: 'extra', size: 1.10, fn: negativeSquared },
     { key: 'bracket',        title: 'Bracket Text',     safety: 'safe', group: 'extra', size: 0.95, fn: bracketText },
     { key: 'currency',       title: 'Currency',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CURRENCY) },
-    { key: 'parenthesized',  title: 'Parenthesized',    safety: 'warn', group: 'extra', size: 0.90, fn: parenthesized },
+    { key: 'parenthesized',  title: 'Parenthesized',    safety: 'risk', group: 'extra', size: 0.90, fn: parenthesized },
     { key: 'superscript',    title: 'Superscript',      safety: 'warn', group: 'extra', size: 1.20, fn: t => mapLookup(t, SUPERSCRIPT) },
     { key: 'gaming',         title: 'Gaming',           safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
     { key: 'upsidedown',     title: 'Upside Down',      safety: 'safe', group: 'extra', size: 1.00, fn: upsideDown },
