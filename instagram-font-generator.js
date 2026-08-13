@@ -318,74 +318,74 @@ document.addEventListener('DOMContentLoaded', function () {
   const EMOJI_FIRE = String.fromCodePoint(0x1F525);
 
   const STYLE_DEFS = [
-    // Default group
-    // BUG FIX: Bold / Italic / Bold Italic previously reused the exact same
-    // Unicode code points as Serif Bold / Serif Italic / Serif Bold Italic,
-    // so the two "different" styles rendered identically. They now map to
-    // the separate Mathematical Sans-Serif Unicode blocks, which is what
-    // "Bold" (as opposed to "Serif Bold") is supposed to be.
-    // BUG FIX: Bold/Italic/Bold Italic and their Serif counterparts all come
-    // from the same Mathematical Alphanumeric Symbols Unicode block
-    // (U+1D400-U+1D7FF) — a font that renders one renders all of them, so
-    // they must share the same compatibility rating. They were previously
-    // split (Bold/Serif Bold = safe, the other four = warn) for no reason
-    // tied to actual character support.
+    // Reordered for an Instagram-bio "vibe": lead with the styles people
+    // actually reach for in bios/captions (bubble, gamer, cursive, gothic,
+    // crown/fire, whimsical scripts, upside down) instead of a wall of
+    // near-identical math bold/italic variants up front. Later "Show More"
+    // batches are interleaved across categories too, so each batch feels
+    // varied rather than dumping all the lookalike-script styles at once.
     { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D5D4, 0x1D5EE, 0x1D7EC, {}) },
     { key: 'italic',         title: 'Italic',           safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D608, 0x1D622, null, {}) },
-    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
-    { key: 'serifbold',      title: 'Serif Bold',       safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'serifitalic',    title: 'Serif Italic',     safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
     { key: 'smallcaps',      title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.00, fn: t => mapLookup(t, SMALLCAPS) },
-    { key: 'monospace',      title: 'Monospace',        safety: 'warn', group: 'default', size: 1.00, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'circled',        title: 'Circled',          safety: 'safe', group: 'default', size: 0.90, fn: circled },
+    { key: 'spaced',         title: 'Spaced',           safety: 'safe', group: 'default', size: 0.95, fn: fullwidth },
 
-    // Extra group
+    { key: 'gaming',         title: 'Gaming',           safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
     { key: 'script',         title: 'Script',           safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'boldscript',     title: 'Bold Script',      safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'doublestruck',   title: 'Double-Struck',    safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
     { key: 'fraktur',        title: 'Fraktur',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
-    { key: 'frakturbold',    title: 'Fraktur Bold',     safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D56C, 0x1D586, null, {}) },
-    { key: 'spaced',         title: 'Spaced',           safety: 'safe', group: 'extra', size: 0.95, fn: fullwidth },
+    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
+    { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_CROWN + ' ' + t + ' ' + EMOJI_CROWN },
+    { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_FIRE + ' ' + t + ' ' + EMOJI_FIRE },
+    { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
+    { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
+    { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
+    { key: 'upsidedown',     title: 'Upside Down',      safety: 'safe', group: 'extra', size: 1.00, fn: upsideDown },
+
+    { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
+    { key: 'symbolic',       title: 'Symbolic',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SYMBOLIC) },
+    { key: 'currency',       title: 'Currency',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CURRENCY) },
+    { key: 'bracket',        title: 'Bracket Text',     safety: 'safe', group: 'extra', size: 0.95, fn: bracketText },
     // BUG FIX: Circled uses the classic Enclosed Alphanumerics BMP block
-    // (U+24B6 etc.), which has been part of standard system fonts since
-    // Unicode 1.1 — genuinely well supported, so it's now 'safe'. Squared,
-    // Negative Circled, and Negative Squared all instead come from the
-    // Enclosed Alphanumeric Supplement astral block (U+1F110-1F189) — a
-    // much newer, emoji-adjacent range with real gaps in support — and
-    // Parenthesized shares that same block. All four now share the same
-    // 'risk' rating instead of being split warn/risk for no block-based
-    // reason.
-    { key: 'circled',        title: 'Circled',          safety: 'safe', group: 'extra', size: 0.90, fn: circled },
+    // (U+24B6 etc.), well supported since Unicode 1.1, so it's rated 'safe'
+    // above. Negative Circled, Squared, Negative Squared, and Parenthesized
+    // all instead come from the Enclosed Alphanumeric Supplement astral
+    // block (U+1F110-1F189) — a much newer, emoji-adjacent range with real
+    // support gaps — so they share the same 'risk' rating together.
     { key: 'negcircled',     title: 'Negative Circled', safety: 'risk', group: 'extra', size: 1.10, fn: negativeCircled },
     { key: 'squared',        title: 'Squared',          safety: 'risk', group: 'extra', size: 0.90, fn: squared },
     { key: 'negsquared',     title: 'Negative Squared', safety: 'risk', group: 'extra', size: 1.10, fn: negativeSquared },
-    { key: 'bracket',        title: 'Bracket Text',     safety: 'safe', group: 'extra', size: 0.95, fn: bracketText },
-    { key: 'currency',       title: 'Currency',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CURRENCY) },
     { key: 'parenthesized',  title: 'Parenthesized',    safety: 'risk', group: 'extra', size: 0.90, fn: parenthesized },
     { key: 'superscript',    title: 'Superscript',      safety: 'warn', group: 'extra', size: 1.20, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'gaming',         title: 'Gaming',           safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
-    { key: 'upsidedown',     title: 'Upside Down',      safety: 'safe', group: 'extra', size: 1.00, fn: upsideDown },
-    { key: 'backwards',      title: 'Backwards',        safety: 'safe', group: 'extra', size: 1.00, fn: t => t.split('').reverse().join('') },
     { key: 'braille',        title: 'Braille',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapLookup(t, BRAILLE) },
+
+    // BUG FIX: Bold/Italic/Bold Italic and their Serif counterparts all come
+    // from the same Mathematical Alphanumeric Symbols Unicode block
+    // (U+1D400-U+1D7FF) — a font that renders one renders all of them, so
+    // they must share the same compatibility rating. Previously split
+    // (Bold/Serif Bold = safe, the other four = warn) for no reason tied to
+    // actual character support.
+    { key: 'serifbold',      title: 'Serif Bold',       safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
+    { key: 'serifitalic',    title: 'Serif Italic',     safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
+    { key: 'boldscript',     title: 'Bold Script',      safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'doublestruck',   title: 'Double-Struck',    safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
+    { key: 'frakturbold',    title: 'Fraktur Bold',     safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D56C, 0x1D586, null, {}) },
+    { key: 'monospace',      title: 'Monospace',        safety: 'warn', group: 'default', size: 1.00, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'backwards',      title: 'Backwards',        safety: 'safe', group: 'extra', size: 1.00, fn: t => t.split('').reverse().join('') },
     { key: 'strikethrough',  title: 'Strikethrough',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0336') },
     { key: 'slashthrough',   title: 'Slash Through',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0337') },
+
     { key: 'underline',      title: 'Underline',        safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0332') },
     { key: 'overline',       title: 'Overline',         safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0305') },
     { key: 'altline',        title: 'Alternating Line', safety: 'safe', group: 'extra', size: 1.00, fn: t => applyAlternating(t, '\u0332', '\u0305') },
     { key: 'ringabove',      title: 'Ring Above',       safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u030A') },
     { key: 'wavy',           title: 'Wavy',             safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0334') },
-    { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_CROWN + ' ' + t + ' ' + EMOJI_CROWN },
-    { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_FIRE + ' ' + t + ' ' + EMOJI_FIRE },
-    { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
-    { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
-    { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
-    { key: 'symbolic',       title: 'Symbolic',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SYMBOLIC) },
     { key: 'shadowscript',   title: 'Shadow Script',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SHADOW_SCRIPT) },
     { key: 'thaifusion',     title: 'Thai Fusion',      safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, THAI_FUSION) },
     { key: 'hiddenheritage', title: 'Hidden Heritage',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIDDEN_HERITAGE) },
     { key: 'decorativelatin',title: 'Decorative Latin', safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_LATIN) },
-    { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'greekfusion',    title: 'Greek Fusion',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_FUSION) },
+
     { key: 'moderngreek',    title: 'Modern Greek',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MODERN_GREEK) },
     { key: 'wisecharacters', title: 'Wise Characters',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WISE_CHARACTERS) },
     { key: 'slashedlatin',   title: 'Slashed Latin',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SLASHED_LATIN) },
