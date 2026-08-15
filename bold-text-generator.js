@@ -56,6 +56,15 @@ document.addEventListener('DOMContentLoaded', function () {
     return out;
   }
 
+  function applyCombining(text, mark) {
+    let out = '';
+    for (const ch of text) {
+      if (/\s/.test(ch)) out += ch;
+      else out += ch + mark;
+    }
+    return out;
+  }
+
   /* ---- Core bold transforms ---- */
   function boldFn(t) { return mapContiguous(t, 0x1D5D4, 0x1D5EE, 0x1D7EC, {}); }
   function boldItalicFn(t) { return mapContiguous(t, 0x1D63C, 0x1D656, null, {}); }
@@ -64,6 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
   function boldScriptFn(t) { return mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}); }
   function frakturBoldFn(t) { return mapContiguous(t, 0x1D56C, 0x1D586, null, {}); }
   function currencyFn(t) { return mapLookup(t, CURRENCY); }
+
+  // Combining marks layered on top of the Bold transform
+  function boldUnderlineFn(t) { return applyCombining(boldFn(t), '\u0332'); }
+  function boldStrikethroughFn(t) { return applyCombining(boldFn(t), '\u0336'); }
+  function boldSlashedFn(t) { return applyCombining(boldFn(t), '\u0337'); }
 
   /* ---- Emoji sequences ----
      BUG-PRONE PATTERN AVOIDED: emoji are built from Unicode code points via
@@ -95,9 +109,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const VEGGIE_START = emojiSeq([0x1F955, 0x1F345, 0x1F966]);
   const VEGGIE_END = emojiSeq([0x1F346, 0x1F33D, 0x1F951]);
 
+  const EMOJI_HEART = emojiSeq([0x1F497]);   // 💗 Growing Heart
+  const EMOJI_SPARKLE = emojiSeq([0x2728]);  // ✨ Sparkles
+  const EMOJI_RIBBON = emojiSeq([0x1F380]);  // 🎀 Ribbon
+
   /* ---- Emoji-decorated bold transforms ---- */
   function royalBoldFn(t) { return EMOJI_CROWN + ' ' + boldFn(t) + ' ' + EMOJI_CROWN; }
   function blazingBoldFn(t) { return EMOJI_FIRE + ' ' + boldFn(t) + ' ' + EMOJI_FIRE; }
+  function sweetheartBoldFn(t) { return EMOJI_HEART + ' ' + boldFn(t) + ' ' + EMOJI_HEART; }
+  function glimmerBoldFn(t) { return EMOJI_SPARKLE + ' ' + boldFn(t) + ' ' + EMOJI_SPARKLE; }
+  function giftBowBoldFn(t) { return EMOJI_RIBBON + ' ' + boldFn(t) + ' ' + EMOJI_RIBBON; }
   function sassyBoldFn(t) { return EMOJI_PEACE + boldScriptFn(t) + EMOJI_PEACE; }
   function foodieBoldFn(t) { return FOOD_START + ' ' + boldScriptFn(t) + ' ' + FOOD_END; }
   function lovestruckBoldFn(t) { return LOVE_START + ' ' + boldScriptFn(t) + ' ' + LOVE_END; }
@@ -120,8 +141,14 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'serifbolditalic',  title: 'Serif Bold Italic',    safety: 'safe', group: 'default', size: 1.05, fn: serifBoldItalicFn },
     { key: 'boldscript',       title: 'Bold Script',          safety: 'warn', group: 'default', size: 1.05, fn: boldScriptFn },
 
-    // Extra 12 — "Show More"
+    // Extra 18 — "Show More"
     { key: 'frakturbold',      title: 'Fraktur Bold',         safety: 'warn', group: 'extra', size: 1.10, fn: frakturBoldFn },
+    // Combining marks (underline/strikethrough/slash) layered on the Bold
+    // transform. The marks themselves are widely supported, same as the
+    // underlying Bold block, so these stay 'safe'.
+    { key: 'boldunderline',    title: 'Bold Underline',       safety: 'safe', group: 'extra', size: 1.05, fn: boldUnderlineFn },
+    { key: 'boldstrikethrough',title: 'Bold Strikethrough',   safety: 'safe', group: 'extra', size: 1.05, fn: boldStrikethroughFn },
+    { key: 'boldslashed',      title: 'Bold Slashed',         safety: 'safe', group: 'extra', size: 1.05, fn: boldSlashedFn },
     // BUG-AWARE RATING: Negative Circled and Negative Squared both come from
     // the Enclosed Alphanumeric Supplement astral block (U+1F150 / U+1F170),
     // a newer, emoji-adjacent range with real support gaps — rated 'risk'
@@ -131,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'currency',         title: 'Currency',             safety: 'warn', group: 'extra', size: 1.00, fn: currencyFn },
     { key: 'royalbold',        title: 'Royal Bold',           safety: 'safe', group: 'extra', size: 1.05, fn: royalBoldFn },
     { key: 'blazingbold',      title: 'Blazing Bold',         safety: 'safe', group: 'extra', size: 1.05, fn: blazingBoldFn },
+    { key: 'sweetheartbold',   title: 'Sweetheart Bold',      safety: 'safe', group: 'extra', size: 1.05, fn: sweetheartBoldFn },
+    { key: 'glimmerbold',      title: 'Glimmer Bold',         safety: 'safe', group: 'extra', size: 1.05, fn: glimmerBoldFn },
+    { key: 'giftbowbold',      title: 'Gift Bow Bold',        safety: 'safe', group: 'extra', size: 1.05, fn: giftBowBoldFn },
     // These six wrap Bold Script under the hood, so they share Bold Script's
     // 'warn' (Limited Support) rating rather than being marked 'safe'.
     { key: 'sassybold',        title: 'Sassy Bold',           safety: 'warn', group: 'extra', size: 1.05, fn: sassyBoldFn },
@@ -316,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const INITIAL_COUNT = 5;
-  const LOAD_MORE_COUNT = 12;
+  const LOAD_MORE_COUNT = 18;
   let loadedCount = 0;
   let activeKeys = [];
 
