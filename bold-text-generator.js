@@ -144,11 +144,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Extra 18 — "Show More"
     { key: 'frakturbold',      title: 'Fraktur Bold',         safety: 'warn', group: 'extra', size: 1.10, fn: frakturBoldFn },
     // Combining marks (underline/strikethrough/slash) layered on the Bold
-    // transform. The marks themselves are widely supported, same as the
-    // underlying Bold block, so these stay 'safe'.
-    { key: 'boldunderline',    title: 'Bold Underline',       safety: 'safe', group: 'extra', size: 1.05, fn: boldUnderlineFn },
-    { key: 'boldstrikethrough',title: 'Bold Strikethrough',   safety: 'safe', group: 'extra', size: 1.05, fn: boldStrikethroughFn },
-    { key: 'boldslashed',      title: 'Bold Slashed',         safety: 'safe', group: 'extra', size: 1.05, fn: boldSlashedFn },
+    // transform. Many mobile fonts (stock Android in particular) can't
+    // shape a combining mark stacked on a Mathematical Alphanumeric Symbol
+    // (the astral-plane block Bold uses), so the mark — or the whole
+    // grapheme — falls back to a tofu box. Same class of gap as Negative
+    // Circled/Squared below, so rated 'risk' rather than 'safe'.
+    { key: 'boldunderline',    title: 'Bold Underline',       safety: 'risk', group: 'extra', size: 1.05, fn: boldUnderlineFn },
+    { key: 'boldstrikethrough',title: 'Bold Strikethrough',   safety: 'risk', group: 'extra', size: 1.05, fn: boldStrikethroughFn },
+    { key: 'boldslashed',      title: 'Bold Slashed',         safety: 'risk', group: 'extra', size: 1.05, fn: boldSlashedFn },
     // BUG-AWARE RATING: Negative Circled and Negative Squared both come from
     // the Enclosed Alphanumeric Supplement astral block (U+1F150 / U+1F170),
     // a newer, emoji-adjacent range with real support gaps — rated 'risk'
