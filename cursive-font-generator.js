@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const EMOJI_FIRE = String.fromCodePoint(0x1F525);
   const EMOJI_SPARKLE = String.fromCodePoint(0x2728);
   const EMOJI_BOW = String.fromCodePoint(0x1F380);
+  const EMOJI_PEACE = String.fromCodePoint(0x270C, 0xFE0F);
 
   const boldScriptFn = t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {});
   function wrapEmoji(fn, emoji) {
@@ -108,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'blazingscript',    title: 'Blazing Script',    safety: 'warn', group: 'extra', size: 1.05, fn: wrapEmoji(boldScriptFn, EMOJI_FIRE) },
     { key: 'sparklescript',    title: 'Sparkle Script',    safety: 'warn', group: 'extra', size: 1.05, fn: wrapEmoji(boldScriptFn, EMOJI_SPARKLE) },
     { key: 'bowscript',        title: 'Bow Script',        safety: 'warn', group: 'extra', size: 1.05, fn: wrapEmoji(boldScriptFn, EMOJI_BOW) },
+    { key: 'sassyscript',      title: 'Sassy Script',      safety: 'warn', group: 'extra', size: 1.05, fn: wrapEmoji(boldScriptFn, EMOJI_PEACE) },
     { key: 'smallcaps',        title: 'Small Caps',        safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, SMALLCAPS) },
     { key: 'doublestruck',     title: 'Double-Struck',     safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
     { key: 'gaming',           title: 'Gaming',            safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
