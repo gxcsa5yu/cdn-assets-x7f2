@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
     { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_CROWN + ' ' + t + ' ' + EMOJI_CROWN },
     { key: 'doublestruck',   title: 'Double-Struck',    safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
-    { key: 'sassy',          title: 'Sassy',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_PEACE + t },
+    { key: 'sassy',          title: 'Sassy',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_PEACE + ' ' + t + ' ' + EMOJI_PEACE },
     { key: 'circled',        title: 'Circled',          safety: 'safe', group: 'extra', size: 0.90, fn: circled },
 
     { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_FIRE + ' ' + t + ' ' + EMOJI_FIRE },
@@ -450,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-chat-avatar">' + iconUse('icon-person') + '</div>' +
                 '<div class="tpx-dfg-pv-chat-right">' +
                   '<div class="tpx-dfg-pv-chat-meta"><span class="tpx-dfg-pv-chat-name">Toolpx</span><span class="tpx-dfg-pv-chat-time">Today at 9:41 AM</span></div>' +
+                  '<div class="tpx-dfg-pv-chat-msg tpx-dfg-preview-plain" data-key="' + key + '">Type something to start</div>' +
                   '<div class="tpx-dfg-pv-chat-msg tpx-dfg-pv-chat-styled tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
                 '</div>' +
               '</div>' +
@@ -525,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-dfg-preview-bio[data-key="' + key + '"]');
+    const previewPlain = grid.querySelectorAll('.tpx-dfg-preview-plain[data-key="' + key + '"]');
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
@@ -536,6 +538,7 @@ document.addEventListener('DOMContentLoaded', function () {
       body: grid.querySelector('.tpx-dfg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-dfg-card-' + key),
       previewBios: previewBios,
+      previewPlain: previewPlain,
       placeholderText: placeholderText,
       previewPlaceholders: previewPlaceholders
     };
@@ -601,6 +604,9 @@ document.addEventListener('DOMContentLoaded', function () {
           const platform = view ? view.dataset.view : null;
           el.textContent = refs.previewPlaceholders[platform];
         });
+        refs.previewPlain.forEach(function (el) {
+          el.textContent = PLACEHOLDER_SAMPLE;
+        });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
@@ -610,6 +616,9 @@ document.addEventListener('DOMContentLoaded', function () {
           const view = el.closest('.tpx-dfg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
+        });
+        refs.previewPlain.forEach(function (el) {
+          el.textContent = text;
         });
       }
     });
