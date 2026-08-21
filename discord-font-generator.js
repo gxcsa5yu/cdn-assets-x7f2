@@ -500,14 +500,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ---- Timeline ---- */
+  // Discord-specific limits: nickname (32), server name (100), custom
+  // status (128), About Me bio (190). Node "left" positions in the HTML
+  // are set to match these pct values so each dot sits exactly where the
+  // fill bar reaches it.
   const CHAR_BREAKPOINTS = [
     { chars: 0, pct: 0 },
-    { chars: 101, pct: 15 },
-    { chars: 150, pct: 29 },
-    { chars: 160, pct: 43 },
-    { chars: 190, pct: 57 },
-    { chars: 200, pct: 71 },
-    { chars: 220, pct: 85 }
+    { chars: 32, pct: 20 },
+    { chars: 100, pct: 45 },
+    { chars: 128, pct: 70 },
+    { chars: 190, pct: 90 }
   ];
 
   function interpolatePct(chars) {
@@ -534,12 +536,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const pct = Math.max(0, Math.min(interpolatePct(chars), 100));
     document.getElementById('tpx-timeline-progress').style.width = pct + '%';
     document.getElementById('tpx-timeline-needle').style.left = pct + '%';
-    toggleNode('node-fb', chars >= 101);
-    toggleNode('node-ig', chars >= 150);
-    toggleNode('node-tw', chars >= 160);
-    toggleNode('node-discord', chars >= 190);
-    toggleNode('node-reddit', chars >= 200);
-    toggleNode('node-li', chars >= 220);
+    toggleNode('node-nickname', chars >= 32);
+    toggleNode('node-servername', chars >= 100);
+    toggleNode('node-status', chars >= 128);
+    toggleNode('node-bio', chars >= 190);
   }
 
   /* ---- Cards / render ---- */
