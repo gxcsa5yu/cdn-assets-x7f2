@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
               '<div class="tpx-dfg-pv-bio-body">' +
                 '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-bio-avatar">' + iconUse('icon-person') + '<span class="tpx-dfg-pv-bio-status"></span></div>' +
                 '<div class="tpx-dfg-pv-bio-name">Toolpx</div>' +
-                '<div class="tpx-dfg-pv-bio-username">toolpx</div>' +
+                '<div class="tpx-dfg-pv-bio-username">toolpx · He/Him</div>' +
                 '<div class="tpx-dfg-pv-bio-label">Bio</div>' +
                 '<div class="tpx-dfg-pv-bio-text tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
