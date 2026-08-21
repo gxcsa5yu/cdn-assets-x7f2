@@ -506,10 +506,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // fill bar reaches it.
   const CHAR_BREAKPOINTS = [
     { chars: 0, pct: 0 },
-    { chars: 32, pct: 20 },
-    { chars: 100, pct: 45 },
-    { chars: 128, pct: 70 },
-    { chars: 190, pct: 90 }
+    { chars: 32, pct: 15 },
+    { chars: 100, pct: 38 },
+    { chars: 128, pct: 62 },
+    { chars: 190, pct: 85 }
   ];
 
   function interpolatePct(chars) {
