@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
             '<div class="tpx-dfg-card-actions">' +
               '<button type="button" class="tpx-dfg-copy-btn" data-key="' + key + '" aria-label="Copy ' + def.title + ' text">' + iconUse('icon-copy') + '</button>' +
-              '<button type="button" class="tpx-dfg-preview-btn" data-key="' + key + '" aria-label="Preview ' + def.title + ' on social platforms" title="Preview on social platforms">' + iconUse('icon-preview') + '</button>' +
+              '<button type="button" class="tpx-dfg-preview-btn" data-key="' + key + '" aria-label="Preview ' + def.title + ' in Discord" title="Preview in Discord">' + iconUse('icon-brand-discord') + '</button>' +
               '<button type="button" class="tpx-dfg-download-btn" data-key="' + key + '" aria-label="Download ' + def.title + ' text">' + iconUse('icon-download') + '</button>' +
             '</div>' +
           '</div>' +
@@ -435,54 +435,31 @@ document.addEventListener('DOMContentLoaded', function () {
         '</div>' +
         '<div class="tpx-dfg-preview-panel" id="tpx-dfg-preview-' + key + '" data-key="' + key + '">' +
           '<div class="tpx-dfg-preview-stage">' +
-            '<div class="tpx-dfg-pv-view tpx-dfg-pv-ig" data-view="instagram">' +
-              '<div class="tpx-dfg-pv-ig-top">' +
-                '<div class="tpx-dfg-preview-avatar">' + iconUse('icon-person') + '</div>' +
-                '<div class="tpx-dfg-pv-ig-right">' +
-                  '<div class="tpx-dfg-pv-ig-name">Toolpx</div>' +
-                  '<div class="tpx-dfg-pv-ig-stats">' +
-                    '<div class="tpx-dfg-pv-ig-stat"><b>128</b><span>posts</span></div>' +
-                    '<div class="tpx-dfg-pv-ig-stat"><b>2,024</b><span>followers</span></div>' +
-                    '<div class="tpx-dfg-pv-ig-stat"><b>75</b><span>following</span></div>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="tpx-dfg-pv-ig-bio tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
-              '<div class="tpx-dfg-pv-ig-link">' + iconUse('icon-link') + '<span>toolpx.com</span><span class="tpx-dfg-pv-ig-more">and 3 more</span></div>' +
-            '</div>' +
-            '<div class="tpx-dfg-pv-view tpx-dfg-pv-fb" data-view="facebook" hidden>' +
-              '<div class="tpx-dfg-pv-fb-cover"></div>' +
-              '<div class="tpx-dfg-pv-fb-body">' +
-                '<div class="tpx-dfg-pv-fb-top">' +
-                  '<div class="tpx-dfg-preview-avatar">' + iconUse('icon-person') + '</div>' +
-                  '<div class="tpx-dfg-pv-fb-right">' +
-                    '<div class="tpx-dfg-pv-fb-name">Toolpx <span class="tpx-dfg-pv-fb-badge">' + iconUse('icon-badge-check') + '</span></div>' +
-                    '<div class="tpx-dfg-pv-fb-stats"><b>17M</b> followers · <b>1</b> following · <b>1.5K</b> posts</div>' +
-                  '</div>' +
-                '</div>' +
-                '<div class="tpx-dfg-pv-fb-category">Page · Artist</div>' +
-                '<div class="tpx-dfg-pv-fb-bio tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
+            '<div class="tpx-dfg-pv-view tpx-dfg-pv-bio" data-view="bio">' +
+              '<div class="tpx-dfg-pv-bio-banner"></div>' +
+              '<div class="tpx-dfg-pv-bio-body">' +
+                '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-bio-avatar">' + iconUse('icon-person') + '<span class="tpx-dfg-pv-bio-status"></span></div>' +
+                '<div class="tpx-dfg-pv-bio-name">Toolpx</div>' +
+                '<div class="tpx-dfg-pv-bio-username">toolpx</div>' +
+                '<div class="tpx-dfg-pv-bio-label">Bio</div>' +
+                '<div class="tpx-dfg-pv-bio-text tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
-            '<div class="tpx-dfg-pv-view tpx-dfg-pv-x" data-view="x" hidden>' +
-              '<div class="tpx-dfg-pv-x-cover"></div>' +
-              '<div class="tpx-dfg-pv-x-body">' +
-                '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-x-avatar">' + iconUse('icon-person') + '</div>' +
-                '<div class="tpx-dfg-pv-x-top-actions">' +
-                  '<div class="tpx-dfg-pv-x-icon-btn" aria-label="Notifications">' + iconUse('icon-bell-plus') + '</div>' +
-                  '<button type="button" class="tpx-dfg-pv-x-follow-btn">' + iconUse('icon-user-plus') + '<span>Follow</span></button>' +
+            '<div class="tpx-dfg-pv-view tpx-dfg-pv-chat" data-view="chat" hidden>' +
+              '<div class="tpx-dfg-pv-chat-row">' +
+                '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-chat-avatar">' + iconUse('icon-person') + '</div>' +
+                '<div class="tpx-dfg-pv-chat-right">' +
+                  '<div class="tpx-dfg-pv-chat-meta"><span class="tpx-dfg-pv-chat-name">Toolpx</span><span class="tpx-dfg-pv-chat-time">Today at 9:41 AM</span></div>' +
+                  '<div class="tpx-dfg-pv-chat-msg tpx-dfg-preview-plain" data-key="' + key + '">Type something to start</div>' +
+                  '<div class="tpx-dfg-pv-chat-msg tpx-dfg-pv-chat-styled tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
                 '</div>' +
-                '<div class="tpx-dfg-pv-x-name">Toolpx <span class="tpx-dfg-pv-x-badge">' + iconUse('icon-badge-check') + '</span></div>' +
-                '<div class="tpx-dfg-pv-x-handle">@toolpx</div>' +
-                '<div class="tpx-dfg-pv-x-bio tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
           '<div class="tpx-dfg-preview-tabbar">' +
             '<div class="tpx-dfg-preview-tabgroup">' +
-              '<button type="button" class="tpx-dfg-preview-tab is-active" data-platform="instagram" title="Instagram" aria-label="Preview on Instagram">' + iconUse('icon-platform-instagram') + '</button>' +
-              '<button type="button" class="tpx-dfg-preview-tab" data-platform="facebook" title="Facebook" aria-label="Preview on Facebook">' + iconUse('icon-platform-facebook') + '</button>' +
-              '<button type="button" class="tpx-dfg-preview-tab" data-platform="x" title="X" aria-label="Preview on X">' + iconUse('icon-platform-twitter') + '</button>' +
+              '<button type="button" class="tpx-dfg-preview-tab is-active" data-platform="bio" title="Bio" aria-label="Preview as Discord bio">' + iconUse('icon-user-edit') + '<span>Bio</span></button>' +
+              '<button type="button" class="tpx-dfg-preview-tab" data-platform="chat" title="Chat" aria-label="Preview as Discord chat">' + iconUse('icon-brand-line') + '<span>Chat</span></button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -490,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   }
 
-  const PREVIEW_CHAR_LIMITS = { instagram: 150, facebook: 101, x: 160 };
+  const PREVIEW_CHAR_LIMITS = { bio: 190 };
 
   function truncateForPlatform(str, limit) {
     if (!limit) return str;
@@ -549,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-dfg-preview-bio[data-key="' + key + '"]');
+    const previewPlain = grid.querySelectorAll('.tpx-dfg-preview-plain[data-key="' + key + '"]');
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
@@ -560,6 +538,7 @@ document.addEventListener('DOMContentLoaded', function () {
       body: grid.querySelector('.tpx-dfg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-dfg-card-' + key),
       previewBios: previewBios,
+      previewPlain: previewPlain,
       placeholderText: placeholderText,
       previewPlaceholders: previewPlaceholders
     };
@@ -625,6 +604,9 @@ document.addEventListener('DOMContentLoaded', function () {
           const platform = view ? view.dataset.view : null;
           el.textContent = refs.previewPlaceholders[platform];
         });
+        refs.previewPlain.forEach(function (el) {
+          el.textContent = PLACEHOLDER_SAMPLE;
+        });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
@@ -634,6 +616,9 @@ document.addEventListener('DOMContentLoaded', function () {
           const view = el.closest('.tpx-dfg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
+        });
+        refs.previewPlain.forEach(function (el) {
+          el.textContent = text;
         });
       }
     });
