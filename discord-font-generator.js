@@ -450,7 +450,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="tpx-dfg-preview-avatar tpx-dfg-pv-chat-avatar">' + iconUse('icon-person') + '</div>' +
                 '<div class="tpx-dfg-pv-chat-right">' +
                   '<div class="tpx-dfg-pv-chat-meta"><span class="tpx-dfg-pv-chat-name">Toolpx</span><span class="tpx-dfg-pv-chat-time">Today at 9:41 AM</span></div>' +
-                  '<div class="tpx-dfg-pv-chat-msg tpx-dfg-preview-plain" data-key="' + key + '">Type something to start</div>' +
                   '<div class="tpx-dfg-pv-chat-msg tpx-dfg-pv-chat-styled tpx-dfg-preview-bio" data-key="' + key + '">Type something to see it here</div>' +
                 '</div>' +
               '</div>' +
@@ -526,7 +525,6 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildStyleRefs(key) {
     const fn = STYLE_FNS[key];
     const previewBios = grid.querySelectorAll('.tpx-dfg-preview-bio[data-key="' + key + '"]');
-    const previewPlain = grid.querySelectorAll('.tpx-dfg-preview-plain[data-key="' + key + '"]');
     const placeholderText = fn(PLACEHOLDER_SAMPLE);
     const previewPlaceholders = {};
     previewBios.forEach(function (el) {
@@ -538,7 +536,6 @@ document.addEventListener('DOMContentLoaded', function () {
       body: grid.querySelector('.tpx-dfg-card-body[data-key="' + key + '"]'),
       card: document.getElementById('tpx-dfg-card-' + key),
       previewBios: previewBios,
-      previewPlain: previewPlain,
       placeholderText: placeholderText,
       previewPlaceholders: previewPlaceholders
     };
@@ -604,9 +601,6 @@ document.addEventListener('DOMContentLoaded', function () {
           const platform = view ? view.dataset.view : null;
           el.textContent = refs.previewPlaceholders[platform];
         });
-        refs.previewPlain.forEach(function (el) {
-          el.textContent = PLACEHOLDER_SAMPLE;
-        });
       } else {
         const styled = fn(text);
         refs.body.textContent = styled;
@@ -616,9 +610,6 @@ document.addEventListener('DOMContentLoaded', function () {
           const view = el.closest('.tpx-dfg-pv-view');
           const platform = view ? view.dataset.view : null;
           el.textContent = truncateForPlatform(styled, PREVIEW_CHAR_LIMITS[platform]);
-        });
-        refs.previewPlain.forEach(function (el) {
-          el.textContent = text;
         });
       }
     });
