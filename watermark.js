@@ -1,0 +1,284 @@
+(function(){
+'use strict';
+const {PDFDocument,rgb,degrees,StandardFonts}=PDFLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const state={
+  pdfFile:null,pdfBytes:null,pdfDoc:null,
+  pdfJsDoc:null,originalPdfJsDoc:null,
+  watermarkedBytes:null,
+  currentPage:1,totalPages:0,
+  activeTab:'text',
+  pattern:'single',
+  textPos:{nx:.5,ny:.5},
+  imagePos:{nx:.5,ny:.5},
+  watermarkImageData:null,
+  rendering:false,liveRendering:false,
+};
+let _liveRafId=null;
+const $=id=>document.getElementById(id);
+const el={
+  root:document.getElementById('wpwm-root'),
+  loader:$('wpwm-loader'),dropzone:$('wpwm-dropzone'),fileInput:$('wpwm-file-input'),
+  fileInfo:$('wpwm-file-info'),fileName:$('wpwm-file-name'),fileSize:$('wpwm-file-size'),
+  filePages:$('wpwm-file-pages'),
+  removeFile:$('wpwm-remove-file'),error:$('wpwm-error'),mainPanel:$('wpwm-main-panel'),
+  tabText:$('wpwm-tab-text'),tabImage:$('wpwm-tab-image'),
+  textOptions:$('wpwm-text-options'),imageOptions:$('wpwm-image-options'),
+  textPosField:$('wpwm-text-pos-field'),
+  wmText:$('wpwm-wm-text'),fontSize:$('wpwm-font-size'),fontSizeVal:$('wpwm-font-size-val'),
+  textOpacity:$('wpwm-text-opacity'),textOpVal:$('wpwm-text-opacity-val'),
+  rotation:$('wpwm-rotation'),rotationVal:$('wpwm-rotation-val'),
+  textColor:$('wpwm-text-color'),colorHex:$('wpwm-color-hex'),
+  imgDropzone:$('wpwm-img-dropzone'),imgInput:$('wpwm-img-input'),
+  imgPrevWrap:$('wpwm-img-preview-wrap'),imgThumb:$('wpwm-img-thumb'),
+  removeImg:$('wpwm-remove-img'),imgSize:$('wpwm-img-size'),imgSizeVal:$('wpwm-img-size-val'),
+  imgOpacity:$('wpwm-img-opacity'),imgOpVal:$('wpwm-img-opacity-val'),
+  applyBtn:$('wpwm-apply-btn'),downloadBtn:$('wpwm-download-btn'),
+  canvas:$('wpwm-canvas'),placeholder:$('wpwm-preview-placeholder'),
+  pageInfo:$('wpwm-page-info'),prevPage:$('wpwm-prev-page'),nextPage:$('wpwm-next-page'),
+};
+const showLoader=()=>el.loader.classList.remove('wpwm-hidden');
+const hideLoader=()=>el.loader.classList.add('wpwm-hidden');
+function showError(msg){el.error.textContent=msg;el.error.classList.remove('wpwm-hidden');setTimeout(()=>el.error.classList.add('wpwm-hidden'),6000);}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
+function hexToRgb01(hex){return{r:parseInt(hex.slice(1,3),16)/255,g:parseInt(hex.slice(3,5),16)/255,b:parseInt(hex.slice(5,7),16)/255};}
+function calcPos(nx,ny,pw,ph,ww,wh){const pad=12;const uw=Math.max(0,pw-ww-pad*2);const uh=Math.max(0,ph-wh-pad*2);return{x:pad+Math.max(0,Math.min(1,nx))*uw,y:pad+Math.max(0,Math.min(1,1-ny))*uh};}
+function getTilePositions(pw,ph,tw,th,pattern,nx,ny){
+  if(pattern==='single'){
+    const pos=calcPos(nx,ny,pw,ph,tw,th);
+    return[{x:pos.x+tw/2,y:pos.y+th/2}];
+  }
+  const spacingX=Math.max(tw*1.6,60);
+  const spacingY=Math.max(th*4,50);
+  const positions=[];
+  let row=0;
+  for(let y=spacingY/2;y<ph+spacingY/2;y+=spacingY){
+    const offsetX=pattern==='diagonal'?(row%2===1?spacingX/2:0):0;
+    for(let x=spacingX/2-offsetX;x<pw+spacingX;x+=spacingX){
+      if(x>-spacingX/4){if(x<pw+spacingX/4+pw)positions.push({x,y});}
+    }
+    row++;
+  }
+  return positions;
+}
+function textOriginForCenter(cx,cy,tw,th,rad){
+  return{
+    dx:cx-(tw/2)*Math.cos(rad)+(th/2)*Math.sin(rad),
+    dy:cy-(tw/2)*Math.sin(rad)-(th/2)*Math.cos(rad)
+  };
+}
+async function loadPDF(file){
+  if(file.size>52428800){showError('File too large - max 50 MB.');return;}
+  if(!file.type.includes('pdf')){if(!file.name.toLowerCase().endsWith('.pdf')){showError('Please upload a valid PDF.');return;}}
+  showLoader();
+  try{
+    const buf=await file.arrayBuffer();
+    state.pdfFile=file;state.pdfBytes=buf.slice(0);state.watermarkedBytes=null;
+    state.pdfDoc=await PDFDocument.load(buf);
+    state.totalPages=state.pdfDoc.getPageCount();state.currentPage=1;
+    const u8=new Uint8Array(buf.slice(0));
+    const doc=await pdfjsLib.getDocument({data:u8}).promise;
+    state.pdfJsDoc=doc;state.originalPdfJsDoc=doc;
+    el.fileName.textContent=file.name;el.fileSize.textContent=formatSize(file.size);
+    el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
+    el.fileInfo.classList.remove('wpwm-hidden');el.mainPanel.classList.remove('wpwm-hidden');
+    el.downloadBtn.classList.add('wpwm-hidden');el.root.classList.add('wpwm-file-loaded');
+    scheduleLive();
+  }catch(e){showError('Failed to load PDF: '+e.message);}
+  finally{hideLoader();}
+}
+function scheduleLive(){if(!state.originalPdfJsDoc)return;if(_liveRafId)cancelAnimationFrame(_liveRafId);_liveRafId=requestAnimationFrame(drawLive);}
+async function drawLive(){
+  _liveRafId=null;if(!state.originalPdfJsDoc||state.liveRendering)return;state.liveRendering=true;
+  try{
+    const SCALE=1.5;const page=await state.originalPdfJsDoc.getPage(state.currentPage);
+    const vp=page.getViewport({scale:SCALE});
+    el.canvas.width=vp.width;el.canvas.height=vp.height;el.canvas.style.display='block';
+    el.placeholder.classList.add('wpwm-hidden');
+    const ctx=el.canvas.getContext('2d');
+    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    if(state.activeTab==='text'){
+      const text=el.wmText.value.trim()||'WATERMARK';
+      const fs=parseInt(el.fontSize.value,10)*SCALE;
+      const op=parseInt(el.textOpacity.value,10)/100;
+      const rot=parseInt(el.rotation.value,10);
+      const{nx,ny}=state.textPos;
+      ctx.save();ctx.globalAlpha=op;
+      ctx.font='bold '+fs+'px Inter,-apple-system,Helvetica,sans-serif';
+      ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
+      const tw=ctx.measureText(text).width;const th=fs*0.70;
+      const rad=rot*Math.PI/180;
+      const positions=getTilePositions(vp.width,vp.height,tw,th,state.pattern,nx,ny);
+      positions.forEach(p=>{
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(-rad);
+        ctx.fillText(text,-tw/2,th*0.85);
+        ctx.restore();
+      });
+      ctx.restore();
+    }
+    el.pageInfo.textContent='Page '+state.currentPage+' / '+state.totalPages;
+  }catch(e){console.warn('live preview:',e);}
+  finally{state.liveRendering=false;}
+}
+async function renderPage(n){
+  if(state.rendering)return;state.rendering=true;
+  try{
+    const page=await state.pdfJsDoc.getPage(n);const vp=page.getViewport({scale:1.5});
+    el.canvas.width=vp.width;el.canvas.height=vp.height;el.canvas.style.display='block';
+    el.placeholder.classList.add('wpwm-hidden');
+    await page.render({canvasContext:el.canvas.getContext('2d'),viewport:vp}).promise;
+    el.pageInfo.textContent='Page '+n+' / '+state.totalPages;
+  }catch(e){showError('Preview failed: '+e.message);}
+  finally{state.rendering=false;}
+}
+async function applyText(){
+  const text=el.wmText.value.trim()||'WATERMARK';
+  const fs=parseInt(el.fontSize.value,10);const op=parseInt(el.textOpacity.value,10)/100;
+  const rot=parseInt(el.rotation.value,10);const{r,g,b}=hexToRgb01(el.textColor.value);
+  const{nx,ny}=state.textPos;
+  const doc=await PDFDocument.load(state.pdfBytes.slice(0));
+  const font=await doc.embedFont(StandardFonts.HelveticaBold);
+  const rad=rot*Math.PI/180;
+  doc.getPages().forEach(page=>{
+    const{width,height}=page.getSize();const tw=font.widthOfTextAtSize(text,fs);const th=fs*0.72;
+    const positions=getTilePositions(width,height,tw,th,state.pattern,nx,ny);
+    positions.forEach(p=>{
+      const{dx,dy}=textOriginForCenter(p.x,p.y,tw,th,rad);
+      page.drawText(text,{x:dx,y:dy,size:fs,font,color:rgb(r,g,b),opacity:op,rotate:degrees(rot)});
+    });
+  });
+  return await doc.save();
+}
+async function applyImage(){
+  if(!state.watermarkImageData){showError('Please upload a watermark image first.');return null;}
+  const sp=parseInt(el.imgSize.value,10)/100;const op=parseInt(el.imgOpacity.value,10)/100;
+  const{nx,ny}=state.imagePos;
+  const doc=await PDFDocument.load(state.pdfBytes.slice(0));
+  const dataUrl=state.watermarkImageData;const b64=dataUrl.split(',')[1];
+  const bin=atob(b64);const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  let img;
+  try{img=dataUrl.includes('image/png')||dataUrl.includes('image/svg')?await doc.embedPng(bytes):await doc.embedJpg(bytes);}
+  catch(e1){try{img=await doc.embedPng(bytes);}catch(e2){showError('Cannot embed image - use PNG or JPG.');return null;}}
+  for(const page of doc.getPages()){
+    const{width,height}=page.getSize();
+    const d=img.scale(sp*Math.min(width,height)/Math.max(img.width,img.height));
+    const{x,y}=calcPos(nx,ny,width,height,d.width,d.height);
+    page.drawImage(img,{x,y,width:d.width,height:d.height,opacity:op});
+  }
+  return await doc.save();
+}
+async function handleApply(){
+  if(!state.pdfBytes)return;showLoader();el.downloadBtn.classList.add('wpwm-hidden');
+  try{
+    const bytes=state.activeTab==='text'?await applyText():await applyImage();
+    if(!bytes){hideLoader();return;}
+    state.watermarkedBytes=bytes;
+    state.pdfJsDoc=await pdfjsLib.getDocument({data:new Uint8Array(bytes)}).promise;
+    state.totalPages=state.pdfJsDoc.numPages;
+    el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
+    await renderPage(state.currentPage);el.downloadBtn.classList.remove('wpwm-hidden');
+  }catch(e){showError('Failed to apply watermark: '+e.message);}
+  finally{hideLoader();}
+}
+function handleDownload(){
+  if(!state.watermarkedBytes)return;
+  const blob=new Blob([state.watermarkedBytes],{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  const name=state.pdfFile?state.pdfFile.name.replace(/\.pdf$/i,''):'document';
+  a.href=url;a.download=name+'_watermarked.pdf';document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+function syncRange(inp,disp,cb){inp.addEventListener('input',()=>{disp.textContent=inp.value;if(cb)cb();});}
+function setupJoystick(padId,handleId,labelId,stateKey,moveCb){
+  const pad=document.getElementById(padId);const handle=document.getElementById(handleId);const label=document.getElementById(labelId);
+  if(!pad||!handle)return;let drag=false;
+  function posLabel(nx,ny){const c=nx<.33?'Left':nx>.66?'Right':'Center';const r=ny<.33?'Top':ny>.66?'Bottom':'Middle';if(r==='Middle'){if(c==='Center')return'Center';return c;}if(c==='Center')return r+' Center';return r+' '+c;}
+  function moveTo(nx,ny){nx=Math.max(0,Math.min(1,nx));ny=Math.max(0,Math.min(1,ny));state[stateKey]={nx,ny};handle.style.left=(nx*100)+'%';handle.style.top=(ny*100)+'%';if(label)label.textContent=posLabel(nx,ny);if(moveCb)moveCb();}
+  function toNorm(cx,cy){const r=pad.getBoundingClientRect();return{nx:(cx-r.left)/r.width,ny:(cy-r.top)/r.height};}
+  function ripple(cx,cy){const r=pad.getBoundingClientRect();const d=document.createElement('div');d.className='wpwm-js-ripple';d.style.left=(cx-r.left)+'px';d.style.top=(cy-r.top)+'px';pad.appendChild(d);setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},480);}
+  pad.addEventListener('mousedown',e=>{if(e.button!==0)return;e.preventDefault();drag=true;handle.classList.add('wpwm-dragging');ripple(e.clientX,e.clientY);const{nx,ny}=toNorm(e.clientX,e.clientY);moveTo(nx,ny);});
+  document.addEventListener('mousemove',e=>{if(!drag)return;e.preventDefault();const{nx,ny}=toNorm(e.clientX,e.clientY);moveTo(nx,ny);},{passive:false});
+  document.addEventListener('mouseup',()=>{if(!drag)return;drag=false;handle.classList.remove('wpwm-dragging');});
+  pad.addEventListener('touchstart',e=>{e.preventDefault();drag=true;handle.classList.add('wpwm-dragging');const t=e.touches[0];ripple(t.clientX,t.clientY);const{nx,ny}=toNorm(t.clientX,t.clientY);moveTo(nx,ny);},{passive:false});
+  pad.addEventListener('touchmove',e=>{e.preventDefault();if(!drag)return;const t=e.touches[0];const{nx,ny}=toNorm(t.clientX,t.clientY);moveTo(nx,ny);},{passive:false});
+  pad.addEventListener('touchend',()=>{drag=false;handle.classList.remove('wpwm-dragging');});
+  pad.addEventListener('keydown',e=>{const s=.05;let{nx,ny}=state[stateKey];if(e.key==='ArrowLeft'){nx-=s;e.preventDefault();}else if(e.key==='ArrowRight'){nx+=s;e.preventDefault();}else if(e.key==='ArrowUp'){ny-=s;e.preventDefault();}else if(e.key==='ArrowDown'){ny+=s;e.preventDefault();}else return;moveTo(nx,ny);});
+  moveTo(.5,.5);
+}
+function switchTab(tab){
+  state.activeTab=tab;
+  if(tab==='text'){el.tabText.classList.add('wpwm-tab-active');el.tabImage.classList.remove('wpwm-tab-active');el.textOptions.classList.remove('wpwm-hidden');el.imageOptions.classList.add('wpwm-hidden');scheduleLive();}
+  else{el.tabImage.classList.add('wpwm-tab-active');el.tabText.classList.remove('wpwm-tab-active');el.imageOptions.classList.remove('wpwm-hidden');el.textOptions.classList.add('wpwm-hidden');if(state.originalPdfJsDoc){state.pdfJsDoc=state.originalPdfJsDoc;renderPage(state.currentPage);}}
+}
+function handleWmImage(file){
+  if(!file||!file.type.startsWith('image/')){showError('Please upload PNG or JPG.');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{state.watermarkImageData=e.target.result;el.imgThumb.src=e.target.result;el.imgPrevWrap.classList.remove('wpwm-hidden');el.imgDropzone.style.display='none';};
+  reader.readAsDataURL(file);
+}
+function goPrev(){if(state.currentPage<=1)return;state.currentPage--;state.activeTab==='text'?scheduleLive():renderPage(state.currentPage);}
+function goNext(){if(state.currentPage>=state.totalPages)return;state.currentPage++;state.activeTab==='text'?scheduleLive():renderPage(state.currentPage);}
+function init(){
+  el.dropzone.addEventListener('dragover',e=>{e.preventDefault();el.dropzone.classList.add('wpwm-drag-over');});
+  el.dropzone.addEventListener('dragleave',()=>el.dropzone.classList.remove('wpwm-drag-over'));
+  el.dropzone.addEventListener('drop',e=>{e.preventDefault();el.dropzone.classList.remove('wpwm-drag-over');const f=e.dataTransfer.files[0];if(f)loadPDF(f);});
+  el.dropzone.addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')el.fileInput.click();});
+  el.dropzone.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')el.fileInput.click();});
+  el.fileInput.addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);});
+  el.removeFile.addEventListener('click',()=>{
+    state.pdfFile=state.pdfBytes=state.pdfDoc=state.pdfJsDoc=state.originalPdfJsDoc=state.watermarkedBytes=null;
+    el.root.classList.remove('wpwm-file-loaded');el.fileInfo.classList.add('wpwm-hidden');
+    el.mainPanel.classList.add('wpwm-hidden');el.downloadBtn.classList.add('wpwm-hidden');
+    el.fileInput.value='';el.canvas.style.display='none';el.placeholder.classList.remove('wpwm-hidden');
+  });
+  el.tabText.addEventListener('click',()=>switchTab('text'));
+  el.tabImage.addEventListener('click',()=>switchTab('image'));
+  document.querySelectorAll('.wpwm-pattern-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.wpwm-pattern-btn').forEach(b=>b.classList.remove('wpwm-pattern-active'));
+      btn.classList.add('wpwm-pattern-active');
+      state.pattern=btn.dataset.pattern;
+      el.textPosField.style.display=state.pattern==='single'?'':'none';
+      scheduleLive();
+    });
+  });
+  document.querySelectorAll('.wpwm-suggest-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{el.wmText.value=chip.dataset.text;scheduleLive();});
+  });
+  document.querySelectorAll('.wpwm-swatch').forEach(sw=>{
+    sw.addEventListener('click',()=>{
+      const c=sw.dataset.color;el.textColor.value=c;el.colorHex.textContent=c;
+      document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
+      sw.classList.add('wpwm-swatch-active');scheduleLive();
+    });
+  });
+  syncRange(el.fontSize,el.fontSizeVal,scheduleLive);
+  syncRange(el.textOpacity,el.textOpVal,scheduleLive);
+  syncRange(el.rotation,el.rotationVal,scheduleLive);
+  syncRange(el.imgSize,el.imgSizeVal);
+  syncRange(el.imgOpacity,el.imgOpVal);
+  el.wmText.addEventListener('input',scheduleLive);
+  el.textColor.addEventListener('input',()=>{
+    el.colorHex.textContent=el.textColor.value;
+    document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
+    scheduleLive();
+  });
+  setupJoystick('wpwm-text-joystick','wpwm-text-handle','wpwm-text-pos-label','textPos',scheduleLive);
+  setupJoystick('wpwm-img-joystick','wpwm-img-handle','wpwm-img-pos-label','imagePos',null);
+  el.imgDropzone.addEventListener('click',()=>el.imgInput.click());
+  el.imgDropzone.addEventListener('dragover',e=>{e.preventDefault();el.imgDropzone.classList.add('wpwm-drag-over');});
+  el.imgDropzone.addEventListener('dragleave',()=>el.imgDropzone.classList.remove('wpwm-drag-over'));
+  el.imgDropzone.addEventListener('drop',e=>{e.preventDefault();el.imgDropzone.classList.remove('wpwm-drag-over');if(e.dataTransfer.files[0])handleWmImage(e.dataTransfer.files[0]);});
+  el.imgInput.addEventListener('change',e=>{if(e.target.files[0])handleWmImage(e.target.files[0]);});
+  el.removeImg.addEventListener('click',()=>{state.watermarkImageData=null;el.imgThumb.src='';el.imgPrevWrap.classList.add('wpwm-hidden');el.imgDropzone.style.display='';el.imgInput.value='';});
+  el.applyBtn.addEventListener('click',handleApply);
+  el.downloadBtn.addEventListener('click',handleDownload);
+  el.prevPage.addEventListener('click',goPrev);
+  el.nextPage.addEventListener('click',goNext);
+}
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
