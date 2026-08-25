@@ -14,6 +14,10 @@ const state={
   imagePos:{nx:.5,ny:.5},
   watermarkImageData:null,
   rendering:false,liveRendering:false,
+  baseCanvas:document.createElement('canvas'),
+  basePageNum:null,
+  baseRenderTask:null,
+  renderTask:null,
 };
 let _liveRafId=null;
 const $=id=>document.getElementById(id);
@@ -26,6 +30,9 @@ const el={
   tabText:$('wpwm-tab-text'),tabImage:$('wpwm-tab-image'),
   textOptions:$('wpwm-text-options'),imageOptions:$('wpwm-image-options'),
   textPosField:$('wpwm-text-pos-field'),
+  tileSpacingField:$('wpwm-tile-spacing-field'),
+  hSpacing:$('wpwm-h-spacing'),hSpacingVal:$('wpwm-h-spacing-val'),
+  vSpacing:$('wpwm-v-spacing'),vSpacingVal:$('wpwm-v-spacing-val'),
   wmText:$('wpwm-wm-text'),fontSize:$('wpwm-font-size'),fontSizeVal:$('wpwm-font-size-val'),
   textOpacity:$('wpwm-text-opacity'),textOpVal:$('wpwm-text-opacity-val'),
   rotation:$('wpwm-rotation'),rotationVal:$('wpwm-rotation-val'),
@@ -49,8 +56,10 @@ function getTilePositions(pw,ph,tw,th,pattern,nx,ny){
     const pos=calcPos(nx,ny,pw,ph,tw,th);
     return[{x:pos.x+tw/2,y:pos.y+th/2}];
   }
-  const spacingX=Math.max(tw*1.6,60);
-  const spacingY=Math.max(th*4,50);
+  const hFactor=parseInt(el.hSpacing.value,10)/100;
+  const vFactor=parseInt(el.vSpacing.value,10)/100;
+  const spacingX=Math.max(tw*hFactor,60);
+  const spacingY=Math.max(th*vFactor,50);
   const positions=[];
   let row=0;
   for(let y=spacingY/2;y<ph+spacingY/2;y+=spacingY){
@@ -80,6 +89,7 @@ async function loadPDF(file){
     const u8=new Uint8Array(buf.slice(0));
     const doc=await pdfjsLib.getDocument({data:u8}).promise;
     state.pdfJsDoc=doc;state.originalPdfJsDoc=doc;
+    state.basePageNum=null;
     el.fileName.textContent=file.name;el.fileSize.textContent=formatSize(file.size);
     el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
     el.fileInfo.classList.remove('wpwm-hidden');el.mainPanel.classList.remove('wpwm-hidden');
@@ -89,18 +99,36 @@ async function loadPDF(file){
   finally{hideLoader();}
 }
 function scheduleLive(){if(!state.originalPdfJsDoc)return;if(_liveRafId)cancelAnimationFrame(_liveRafId);_liveRafId=requestAnimationFrame(drawLive);}
+async function renderBasePage(){
+  const SCALE=1.5;
+  const page=await state.originalPdfJsDoc.getPage(state.currentPage);
+  const vp=page.getViewport({scale:SCALE});
+  state.baseCanvas.width=vp.width;state.baseCanvas.height=vp.height;
+  const bctx=state.baseCanvas.getContext('2d');
+  if(state.baseRenderTask){try{state.baseRenderTask.cancel();}catch(e){}}
+  state.baseRenderTask=page.render({canvasContext:bctx,viewport:vp});
+  await state.baseRenderTask.promise;
+  state.baseRenderTask=null;
+  state.basePageNum=state.currentPage;
+}
 async function drawLive(){
   _liveRafId=null;if(!state.originalPdfJsDoc||state.liveRendering)return;state.liveRendering=true;
   try{
-    const SCALE=1.5;const page=await state.originalPdfJsDoc.getPage(state.currentPage);
-    const vp=page.getViewport({scale:SCALE});
-    el.canvas.width=vp.width;el.canvas.height=vp.height;el.canvas.style.display='block';
+    if(state.basePageNum!==state.currentPage||!state.baseCanvas.width){
+      await renderBasePage();
+    }
+    const vpWidth=state.baseCanvas.width,vpHeight=state.baseCanvas.height;
+    if(el.canvas.width!==vpWidth||el.canvas.height!==vpHeight){
+      el.canvas.width=vpWidth;el.canvas.height=vpHeight;
+    }
+    el.canvas.style.display='block';
     el.placeholder.classList.add('wpwm-hidden');
     const ctx=el.canvas.getContext('2d');
-    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    ctx.clearRect(0,0,vpWidth,vpHeight);
+    ctx.drawImage(state.baseCanvas,0,0);
     if(state.activeTab==='text'){
       const text=el.wmText.value.trim()||'WATERMARK';
-      const fs=parseInt(el.fontSize.value,10)*SCALE;
+      const fs=parseInt(el.fontSize.value,10)*1.5;
       const op=parseInt(el.textOpacity.value,10)/100;
       const rot=parseInt(el.rotation.value,10);
       const{nx,ny}=state.textPos;
@@ -109,7 +137,7 @@ async function drawLive(){
       ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
       const tw=ctx.measureText(text).width;const th=fs*0.70;
       const rad=rot*Math.PI/180;
-      const positions=getTilePositions(vp.width,vp.height,tw,th,state.pattern,nx,ny);
+      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny);
       positions.forEach(p=>{
         ctx.save();
         ctx.translate(p.x,p.y);
@@ -129,9 +157,12 @@ async function renderPage(n){
     const page=await state.pdfJsDoc.getPage(n);const vp=page.getViewport({scale:1.5});
     el.canvas.width=vp.width;el.canvas.height=vp.height;el.canvas.style.display='block';
     el.placeholder.classList.add('wpwm-hidden');
-    await page.render({canvasContext:el.canvas.getContext('2d'),viewport:vp}).promise;
+    if(state.renderTask){try{state.renderTask.cancel();}catch(e){}}
+    state.renderTask=page.render({canvasContext:el.canvas.getContext('2d'),viewport:vp});
+    await state.renderTask.promise;
+    state.renderTask=null;
     el.pageInfo.textContent='Page '+n+' / '+state.totalPages;
-  }catch(e){showError('Preview failed: '+e.message);}
+  }catch(e){if(e){if(e.name!=='RenderingCancelledException')showError('Preview failed: '+e.message);}}
   finally{state.rendering=false;}
 }
 async function applyText(){
@@ -231,6 +262,7 @@ function init(){
   el.fileInput.addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);});
   el.removeFile.addEventListener('click',()=>{
     state.pdfFile=state.pdfBytes=state.pdfDoc=state.pdfJsDoc=state.originalPdfJsDoc=state.watermarkedBytes=null;
+    state.basePageNum=null;
     el.root.classList.remove('wpwm-file-loaded');el.fileInfo.classList.add('wpwm-hidden');
     el.mainPanel.classList.add('wpwm-hidden');el.downloadBtn.classList.add('wpwm-hidden');
     el.fileInput.value='';el.canvas.style.display='none';el.placeholder.classList.remove('wpwm-hidden');
@@ -242,7 +274,9 @@ function init(){
       document.querySelectorAll('.wpwm-pattern-btn').forEach(b=>b.classList.remove('wpwm-pattern-active'));
       btn.classList.add('wpwm-pattern-active');
       state.pattern=btn.dataset.pattern;
-      el.textPosField.style.display=state.pattern==='single'?'':'none';
+      const isSingle=state.pattern==='single';
+      el.textPosField.style.display=isSingle?'':'none';
+      el.tileSpacingField.classList.toggle('wpwm-hidden',isSingle);
       scheduleLive();
     });
   });
@@ -259,6 +293,8 @@ function init(){
   syncRange(el.fontSize,el.fontSizeVal,scheduleLive);
   syncRange(el.textOpacity,el.textOpVal,scheduleLive);
   syncRange(el.rotation,el.rotationVal,scheduleLive);
+  syncRange(el.hSpacing,el.hSpacingVal,scheduleLive);
+  syncRange(el.vSpacing,el.vSpacingVal,scheduleLive);
   syncRange(el.imgSize,el.imgSizeVal);
   syncRange(el.imgOpacity,el.imgOpVal);
   el.wmText.addEventListener('input',scheduleLive);
