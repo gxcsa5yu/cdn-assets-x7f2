@@ -19,6 +19,7 @@ const state={
   basePageNum:null,
   baseRenderTask:null,
   renderTask:null,
+  drag:null,
 };
 let _liveRafId=null;
 const $=id=>document.getElementById(id);
@@ -30,7 +31,6 @@ const el={
   removeFile:$('wpwm-remove-file'),error:$('wpwm-error'),mainPanel:$('wpwm-main-panel'),
   tabText:$('wpwm-tab-text'),tabImage:$('wpwm-tab-image'),
   textOptions:$('wpwm-text-options'),imageOptions:$('wpwm-image-options'),
-  textPosField:$('wpwm-text-pos-field'),
   tileSpacingField:$('wpwm-tile-spacing-field'),
   hSpacing:$('wpwm-h-spacing'),hSpacingVal:$('wpwm-h-spacing-val'),
   vSpacing:$('wpwm-v-spacing'),vSpacingVal:$('wpwm-v-spacing-val'),
@@ -53,20 +53,18 @@ function showError(msg){el.error.textContent=msg;el.error.classList.remove('wpwm
 function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
 function hexToRgb01(hex){return{r:parseInt(hex.slice(1,3),16)/255,g:parseInt(hex.slice(3,5),16)/255,b:parseInt(hex.slice(5,7),16)/255};}
 function calcPos(nx,ny,pw,ph,ww,wh,flipY){
-  const pad=12;const uw=Math.max(0,pw-ww-pad*2);const uh=Math.max(0,ph-wh-pad*2);
-  const nyClamped=Math.max(0,Math.min(1,ny));
-  const ny2=flipY?(1-nyClamped):nyClamped;
-  return{x:pad+Math.max(0,Math.min(1,nx))*uw,y:pad+ny2*uh};
+  const pad=12;const uw=pw-ww-pad*2;const uh=ph-wh-pad*2;
+  const ny2=flipY?(1-ny):ny;
+  return{x:pad+nx*uw,y:pad+ny2*uh};
 }
-function getTilePositions(pw,ph,tw,th,pattern,nx,ny,flipY){
+function getTilePositions(pw,ph,tw,th,pattern,nx,ny,flipY,renderScale){
   if(pattern==='single'){
     const pos=calcPos(nx,ny,pw,ph,tw,th,flipY);
     return[{x:pos.x+tw/2,y:pos.y+th/2}];
   }
-  const hFactor=parseInt(el.hSpacing.value,10)/100;
-  const vFactor=parseInt(el.vSpacing.value,10)/100;
-  const spacingX=Math.max(tw*hFactor,60);
-  const spacingY=Math.max(th*vFactor,50);
+  const scale=renderScale?renderScale:1;
+  const spacingX=Math.max(parseInt(el.hSpacing.value,10)*scale,10);
+  const spacingY=Math.max(parseInt(el.vSpacing.value,10)*scale,10);
   const positions=[];
   let row=0;
   for(let y=spacingY/2;y<ph+spacingY/2;y+=spacingY){
@@ -144,7 +142,7 @@ async function drawLive(){
       ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
       const tw=ctx.measureText(text).width;const th=fs*0.70;
       const rad=rot*Math.PI/180;
-      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false);
+      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false,1.5);
       positions.forEach(p=>{
         ctx.save();
         ctx.translate(p.x,p.y);
@@ -202,7 +200,7 @@ async function applyText(){
   const rad=rot*Math.PI/180;
   doc.getPages().forEach(page=>{
     const{width,height}=page.getSize();const tw=font.widthOfTextAtSize(text,fs);const th=fs*0.72;
-    const positions=getTilePositions(width,height,tw,th,state.pattern,nx,ny,true);
+    const positions=getTilePositions(width,height,tw,th,state.pattern,nx,ny,true,1);
     positions.forEach(p=>{
       const{dx,dy}=textOriginForCenter(p.x,p.y,tw,th,rad);
       page.drawText(text,{x:dx,y:dy,size:fs,font,color:rgb(r,g,b),opacity:op,rotate:degrees(rot)});
@@ -255,21 +253,92 @@ function handleDownload(){
   document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 function syncRange(inp,disp,cb){inp.addEventListener('input',()=>{disp.textContent=inp.value;if(cb)cb();});}
-function setupJoystick(padId,handleId,labelId,stateKey,moveCb){
-  const pad=document.getElementById(padId);const handle=document.getElementById(handleId);const label=document.getElementById(labelId);
-  if(!pad||!handle)return;let drag=false;
-  function posLabel(nx,ny){const c=nx<.33?'Left':nx>.66?'Right':'Center';const r=ny<.33?'Top':ny>.66?'Bottom':'Middle';if(r==='Middle'){if(c==='Center')return'Center';return c;}if(c==='Center')return r+' Center';return r+' '+c;}
-  function moveTo(nx,ny){nx=Math.max(0,Math.min(1,nx));ny=Math.max(0,Math.min(1,ny));state[stateKey]={nx,ny};handle.style.left=(nx*100)+'%';handle.style.top=(ny*100)+'%';if(label)label.textContent=posLabel(nx,ny);if(moveCb)moveCb();}
-  function toNorm(cx,cy){const r=pad.getBoundingClientRect();return{nx:(cx-r.left)/r.width,ny:(cy-r.top)/r.height};}
-  function ripple(cx,cy){const r=pad.getBoundingClientRect();const d=document.createElement('div');d.className='wpwm-js-ripple';d.style.left=(cx-r.left)+'px';d.style.top=(cy-r.top)+'px';pad.appendChild(d);setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},480);}
-  pad.addEventListener('mousedown',e=>{if(e.button!==0)return;e.preventDefault();drag=true;handle.classList.add('wpwm-dragging');ripple(e.clientX,e.clientY);const{nx,ny}=toNorm(e.clientX,e.clientY);moveTo(nx,ny);});
-  document.addEventListener('mousemove',e=>{if(!drag)return;e.preventDefault();const{nx,ny}=toNorm(e.clientX,e.clientY);moveTo(nx,ny);},{passive:false});
-  document.addEventListener('mouseup',()=>{if(!drag)return;drag=false;handle.classList.remove('wpwm-dragging');});
-  pad.addEventListener('touchstart',e=>{e.preventDefault();drag=true;handle.classList.add('wpwm-dragging');const t=e.touches[0];ripple(t.clientX,t.clientY);const{nx,ny}=toNorm(t.clientX,t.clientY);moveTo(nx,ny);},{passive:false});
-  pad.addEventListener('touchmove',e=>{e.preventDefault();if(!drag)return;const t=e.touches[0];const{nx,ny}=toNorm(t.clientX,t.clientY);moveTo(nx,ny);},{passive:false});
-  pad.addEventListener('touchend',()=>{drag=false;handle.classList.remove('wpwm-dragging');});
-  pad.addEventListener('keydown',e=>{const s=.05;let{nx,ny}=state[stateKey];if(e.key==='ArrowLeft'){nx-=s;e.preventDefault();}else if(e.key==='ArrowRight'){nx+=s;e.preventDefault();}else if(e.key==='ArrowUp'){ny-=s;e.preventDefault();}else if(e.key==='ArrowDown'){ny+=s;e.preventDefault();}else return;moveTo(nx,ny);});
-  moveTo(.5,.5);
+function canvasPointFromEvent(evt){
+  const rect=el.canvas.getBoundingClientRect();
+  let clientX,clientY;
+  if(evt.touches){if(evt.touches.length>0){clientX=evt.touches[0].clientX;clientY=evt.touches[0].clientY;}}
+  if(clientX===undefined){clientX=evt.clientX;clientY=evt.clientY;}
+  const scaleX=el.canvas.width/rect.width;
+  const scaleY=el.canvas.height/rect.height;
+  return{x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY};
+}
+function getActiveDragBox(){
+  if(!state.baseCanvas.width)return null;
+  const vpWidth=state.baseCanvas.width,vpHeight=state.baseCanvas.height;
+  if(state.activeTab==='text'){
+    if(state.pattern!=='single')return null;
+    const text=el.wmText.value.trim()||'WATERMARK';
+    const fs=parseInt(el.fontSize.value,10)*1.5;
+    const mctx=el.canvas.getContext('2d');
+    mctx.font='bold '+fs+'px Inter,-apple-system,Helvetica,sans-serif';
+    const tw=mctx.measureText(text).width;const th=fs*0.70;
+    const rot=parseInt(el.rotation.value,10);
+    const pos=calcPos(state.textPos.nx,state.textPos.ny,vpWidth,vpHeight,tw,th,false);
+    return{cx:pos.x+tw/2,cy:pos.y+th/2,w:tw,h:th,rad:rot*Math.PI/180,type:'text'};
+  }
+  const im=state.watermarkImageEl;
+  if(!im)return null;
+  if(!im.complete)return null;
+  if(!im.naturalWidth)return null;
+  const sp=parseInt(el.imgSize.value,10)/100;
+  const iw=im.naturalWidth,ih=im.naturalHeight;
+  const scale=sp*Math.min(vpWidth,vpHeight)/Math.max(iw,ih);
+  const dw=iw*scale,dh=ih*scale;
+  const rot=parseInt(el.imgRotation.value,10);
+  const pos=calcPos(state.imagePos.nx,state.imagePos.ny,vpWidth,vpHeight,dw,dh,false);
+  return{cx:pos.x+dw/2,cy:pos.y+dh/2,w:dw,h:dh,rad:rot*Math.PI/180,type:'image'};
+}
+function hitTestBox(px,py,box){
+  if(!box)return false;
+  const pad=20;
+  const dx=px-box.cx,dy=py-box.cy;
+  const lx=dx*Math.cos(box.rad)-dy*Math.sin(box.rad);
+  const ly=dx*Math.sin(box.rad)+dy*Math.cos(box.rad);
+  if(Math.abs(lx)>box.w/2+pad)return false;
+  if(Math.abs(ly)>box.h/2+pad)return false;
+  return true;
+}
+function setupCanvasDrag(){
+  function down(evt){
+    if(!state.baseCanvas.width)return;
+    const pt=canvasPointFromEvent(evt);
+    const box=getActiveDragBox();
+    if(!hitTestBox(pt.x,pt.y,box))return;
+    evt.preventDefault();
+    state.drag={type:box.type,grabDX:pt.x-box.cx,grabDY:pt.y-box.cy,w:box.w,h:box.h};
+    el.canvas.style.cursor='grabbing';
+  }
+  function move(evt){
+    if(state.drag){
+      evt.preventDefault();
+      const pt=canvasPointFromEvent(evt);
+      const vpWidth=state.baseCanvas.width,vpHeight=state.baseCanvas.height;
+      const cx=pt.x-state.drag.grabDX,cy=pt.y-state.drag.grabDY;
+      const pad=12;
+      const uw=vpWidth-state.drag.w-pad*2;
+      const uh=vpHeight-state.drag.h-pad*2;
+      const x=cx-state.drag.w/2,y=cy-state.drag.h/2;
+      const nx=uw?(x-pad)/uw:0;
+      const ny=uh?(y-pad)/uh:0;
+      if(state.drag.type==='text'){state.textPos={nx,ny};}
+      else{state.imagePos={nx,ny};}
+      scheduleLive();
+      return;
+    }
+    const pt=canvasPointFromEvent(evt);
+    const box=getActiveDragBox();
+    el.canvas.style.cursor=hitTestBox(pt.x,pt.y,box)?'grab':'default';
+  }
+  function up(){
+    if(state.drag){state.drag=null;el.canvas.style.cursor='default';}
+  }
+  el.canvas.addEventListener('mousedown',down);
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+  el.canvas.addEventListener('touchstart',down,{passive:false});
+  el.canvas.addEventListener('touchmove',move,{passive:false});
+  el.canvas.addEventListener('touchend',up);
+  el.canvas.addEventListener('touchcancel',up);
 }
 function refreshPreview(){
   if(state.watermarkedBytes){renderPage(state.currentPage);}
@@ -308,7 +377,7 @@ function init(){
   el.fileInput.addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);});
   el.removeFile.addEventListener('click',()=>{
     state.pdfFile=state.pdfBytes=state.pdfDoc=state.pdfJsDoc=state.originalPdfJsDoc=state.watermarkedBytes=null;
-    state.basePageNum=null;
+    state.basePageNum=null;state.drag=null;
     el.root.classList.remove('wpwm-file-loaded');el.fileInfo.classList.add('wpwm-hidden');
     el.mainPanel.classList.add('wpwm-hidden');el.downloadBtn.classList.add('wpwm-hidden');
     el.fileInput.value='';el.canvas.style.display='none';el.placeholder.classList.remove('wpwm-hidden');
@@ -321,7 +390,6 @@ function init(){
       btn.classList.add('wpwm-pattern-active');
       state.pattern=btn.dataset.pattern;
       const isSingle=state.pattern==='single';
-      el.textPosField.style.display=isSingle?'':'none';
       el.tileSpacingField.classList.toggle('wpwm-hidden',isSingle);
       scheduleLive();
     });
@@ -349,8 +417,7 @@ function init(){
     document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
     scheduleLive();
   });
-  setupJoystick('wpwm-text-joystick','wpwm-text-handle','wpwm-text-pos-label','textPos',scheduleLive);
-  setupJoystick('wpwm-img-joystick','wpwm-img-handle','wpwm-img-pos-label','imagePos',scheduleLive);
+  setupCanvasDrag();
   el.imgDropzone.addEventListener('click',()=>el.imgInput.click());
   el.imgDropzone.addEventListener('dragover',e=>{e.preventDefault();el.imgDropzone.classList.add('wpwm-drag-over');});
   el.imgDropzone.addEventListener('dragleave',()=>el.imgDropzone.classList.remove('wpwm-drag-over'));
