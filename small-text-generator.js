@@ -339,12 +339,12 @@ document.addEventListener('DOMContentLoaded', function () {
     return defs.map(function (d) { return d.key; });
   }
 
-  const INITIAL_COUNT = 3; // the 'default' group: Small Caps, Superscript, Subscript
+  const INITIAL_COUNT = 5; // the 'default' group: Small Caps, Superscript, Subscript
   const LOAD_MORE_COUNT = 10;
   let loadedCount = 0;
   let activeKeys = [];
 
-  // Initially show the 3 default styles
+  // Initially show the 5 default styles
   activeKeys = renderCardsSlice(0, INITIAL_COUNT, defaultStylesContainer, false);
   loadedCount = INITIAL_COUNT;
 
