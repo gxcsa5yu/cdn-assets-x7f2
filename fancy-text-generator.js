@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const defaultStylesContainer = document.getElementById('tpx-ftg-default-styles');
   const extraStyles = document.getElementById('tpx-ftg-extra-styles');
   const announcer = document.getElementById('tpx-ftg-sr-announcer');
-  let extraStylesRevealed = false;
 
   /* ---- Conversion engine ---- */
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
@@ -318,65 +317,74 @@ document.addEventListener('DOMContentLoaded', function () {
   const EMOJI_CROWN = String.fromCodePoint(0x1F451);
   const EMOJI_FIRE = String.fromCodePoint(0x1F525);
 
+  // STYLE_DEFS ordered with widely-supported (green/safe) styles first —
+  // most relevant Facebook bio styles at the top — then warn, then risk.
   const STYLE_DEFS = [
-    // Default group
-    { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
-    { key: 'italic',         title: 'Italic',           safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
-    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'warn', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
+    // —— Default 5 (all safe, most relevant) ——
+    { key: 'bold',           title: 'Bold',             safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D5D4, 0x1D5EE, 0x1D7EC, {}) },
+    { key: 'italic',         title: 'Italic',           safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D608, 0x1D622, null, {}) },
+    { key: 'bolditalic',     title: 'Bold Italic',      safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D63C, 0x1D656, null, {}) },
+    { key: 'serifbold',      title: 'Serif Bold',       safety: 'safe', group: 'default', size: 1.05, fn: t => mapContiguous(t, 0x1D400, 0x1D41A, 0x1D7CE, {}) },
     { key: 'smallcaps',      title: 'Small Caps',       safety: 'safe', group: 'default', size: 1.00, fn: t => mapLookup(t, SMALLCAPS) },
-    { key: 'monospace',      title: 'Monospace',        safety: 'warn', group: 'default', size: 1.00, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
 
-    // Extra group
-    { key: 'script',         title: 'Script',           safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
-    { key: 'boldscript',     title: 'Bold Script',      safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
-    { key: 'doublestruck',   title: 'Double-Struck',    safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
-    { key: 'fraktur',        title: 'Fraktur',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
-    { key: 'frakturbold',    title: 'Fraktur Bold',     safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D56C, 0x1D586, null, {}) },
-    { key: 'spaced',         title: 'Spaced',           safety: 'safe', group: 'extra', size: 0.95, fn: fullwidth },
-    { key: 'circled',        title: 'Circled',          safety: 'warn', group: 'extra', size: 0.90, fn: circled },
-    { key: 'negcircled',     title: 'Negative Circled', safety: 'risk', group: 'extra', size: 1.10, fn: negativeCircled },
-    { key: 'squared',        title: 'Squared',          safety: 'warn', group: 'extra', size: 0.90, fn: squared },
-    { key: 'negsquared',     title: 'Negative Squared', safety: 'risk', group: 'extra', size: 1.10, fn: negativeSquared },
-    { key: 'bracket',        title: 'Bracket Text',     safety: 'safe', group: 'extra', size: 0.95, fn: bracketText },
-    { key: 'currency',       title: 'Currency',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CURRENCY) },
-    { key: 'parenthesized',  title: 'Parenthesized',    safety: 'warn', group: 'extra', size: 0.90, fn: parenthesized },
-    { key: 'superscript',    title: 'Superscript',      safety: 'warn', group: 'extra', size: 1.20, fn: t => mapLookup(t, SUPERSCRIPT) },
-    { key: 'gaming',         title: 'Gaming',           safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
+    // —— Remaining safe styles ——
+    { key: 'serifitalic',    title: 'Serif Italic',     safety: 'safe', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D434, 0x1D44E, null, { h: 'ℎ' }) },
+    { key: 'serifbolditalic',title: 'Serif Bold Italic',safety: 'safe', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D468, 0x1D482, null, {}) },
     { key: 'upsidedown',     title: 'Upside Down',      safety: 'safe', group: 'extra', size: 1.00, fn: upsideDown },
-    { key: 'backwards',      title: 'Backwards',        safety: 'safe', group: 'extra', size: 1.00, fn: t => t.split('').reverse().join('') },
-    { key: 'braille',        title: 'Braille',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapLookup(t, BRAILLE) },
-    { key: 'strikethrough',  title: 'Strikethrough',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0336') },
-    { key: 'slashthrough',   title: 'Slash Through',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0337') },
     { key: 'underline',      title: 'Underline',        safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0332') },
-    { key: 'overline',       title: 'Overline',         safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0305') },
-    { key: 'altline',        title: 'Alternating Line', safety: 'safe', group: 'extra', size: 1.00, fn: t => applyAlternating(t, '\u0332', '\u0305') },
-    { key: 'ringabove',      title: 'Ring Above',       safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u030A') },
-    { key: 'wavy',           title: 'Wavy',             safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0334') },
+    { key: 'strikethrough',  title: 'Strikethrough',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0336') },
+    { key: 'circled',        title: 'Circled',          safety: 'safe', group: 'extra', size: 0.90, fn: circled },
+    { key: 'spaced',         title: 'Spaced',           safety: 'safe', group: 'extra', size: 0.95, fn: fullwidth },
+    { key: 'gaming',         title: 'Gaming',           safety: 'safe', group: 'extra', size: 1.00, fn: t => mapLookup(t, GAMING) },
+    { key: 'backwards',      title: 'Backwards',        safety: 'safe', group: 'extra', size: 1.00, fn: t => t.split('').reverse().join('') },
     { key: 'crown',          title: 'Crown',            safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_CROWN + ' ' + t + ' ' + EMOJI_CROWN },
     { key: 'fire',           title: 'Fire',             safety: 'safe', group: 'extra', size: 1.00, fn: t => EMOJI_FIRE + ' ' + t + ' ' + EMOJI_FIRE },
-    { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
+    { key: 'bracket',        title: 'Bracket Text',     safety: 'safe', group: 'extra', size: 0.95, fn: bracketText },
+    { key: 'wavy',           title: 'Wavy',             safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0334') },
+    { key: 'overline',       title: 'Overline',         safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0305') },
+    { key: 'altline',        title: 'Alternating Line', safety: 'safe', group: 'extra', size: 1.00, fn: t => applyAlternating(t, '\u0332', '\u0305') },
+    { key: 'slashthrough',   title: 'Slash Through',    safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u0337') },
+    { key: 'ringabove',      title: 'Ring Above',       safety: 'safe', group: 'extra', size: 1.00, fn: t => applyCombining(t, '\u030A') },
+
+    // —— Warn styles ——
+    { key: 'doublestruck',   title: 'Double-Struck',    safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' }) },
+    { key: 'script',         title: 'Script',           safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D49C, 0x1D4B6, null, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' }) },
+    { key: 'boldscript',     title: 'Bold Script',      safety: 'warn', group: 'extra', size: 1.05, fn: t => mapContiguous(t, 0x1D4D0, 0x1D4EA, null, {}) },
+    { key: 'fraktur',        title: 'Fraktur',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D504, 0x1D51E, null, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' }) },
+    { key: 'frakturbold',    title: 'Fraktur Bold',     safety: 'warn', group: 'extra', size: 1.10, fn: t => mapContiguous(t, 0x1D56C, 0x1D586, null, {}) },
+    { key: 'monospace',      title: 'Monospace',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapContiguous(t, 0x1D670, 0x1D68A, 0x1D7F6, {}) },
+    { key: 'superscript',    title: 'Superscript',      safety: 'warn', group: 'extra', size: 1.20, fn: t => mapLookup(t, SUPERSCRIPT) },
     { key: 'wizard',         title: 'Wizard',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WIZARD) },
+    { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'mystic',         title: 'Mystic',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MYSTIC) },
     { key: 'symbolic',       title: 'Symbolic',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SYMBOLIC) },
+    { key: 'currency',       title: 'Currency',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CURRENCY) },
+    { key: 'fairytale',      title: 'Fairytale',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAIRYTALE) },
+    { key: 'katakana',       title: 'Katakana',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, KATAKANA) },
     { key: 'shadowscript',   title: 'Shadow Script',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SHADOW_SCRIPT) },
     { key: 'thaifusion',     title: 'Thai Fusion',      safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, THAI_FUSION) },
+    { key: 'moderngreek',    title: 'Modern Greek',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MODERN_GREEK) },
     { key: 'hiddenheritage', title: 'Hidden Heritage',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIDDEN_HERITAGE) },
     { key: 'decorativelatin',title: 'Decorative Latin', safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, DECORATIVE_LATIN) },
-    { key: 'cyberpunk',      title: 'Cyberpunk',        safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, CYBERPUNK) },
     { key: 'greekfusion',    title: 'Greek Fusion',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, GREEK_FUSION) },
-    { key: 'moderngreek',    title: 'Modern Greek',     safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, MODERN_GREEK) },
     { key: 'wisecharacters', title: 'Wise Characters',  safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, WISE_CHARACTERS) },
     { key: 'slashedlatin',   title: 'Slashed Latin',    safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SLASHED_LATIN) },
     { key: 'rusify',         title: 'Rusify',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, RUSIFY) },
     { key: 'soviet',         title: 'Soviet',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, SOVIET) },
+    { key: 'pixeleast',      title: 'Pixel East',       safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, PIXEL_EAST) },
+    { key: 'stinky',         title: 'Stinky',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, STINKY) },
+    { key: 'yangtan',        title: 'Yangtan',          safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, YANGTAN) },
+    { key: 'braille',        title: 'Braille',          safety: 'warn', group: 'extra', size: 1.10, fn: t => mapLookup(t, BRAILLE) },
+
+    // —— Risk styles ——
+    { key: 'negcircled',     title: 'Negative Circled', safety: 'risk', group: 'extra', size: 1.10, fn: negativeCircled },
+    { key: 'squared',        title: 'Squared',          safety: 'risk', group: 'extra', size: 0.90, fn: squared },
+    { key: 'negsquared',     title: 'Negative Squared', safety: 'risk', group: 'extra', size: 1.10, fn: negativeSquared },
+    { key: 'parenthesized',  title: 'Parenthesized',    safety: 'risk', group: 'extra', size: 0.90, fn: parenthesized },
     { key: 'lisu',           title: 'Lisu Style',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, LISU) },
     { key: 'olditalic',      title: 'Old Italic',       safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, OLD_ITALIC) },
     { key: 'fauxethiopian',  title: 'Faux Ethiopian',   safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, FAUX_ETHIOPIAN) },
-    { key: 'katakana',       title: 'Katakana',         safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, KATAKANA) },
-    { key: 'pixeleast',      title: 'Pixel East',       safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, PIXEL_EAST) },
-    { key: 'stinky',         title: 'Stinky',           safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, STINKY) },
-    { key: 'hieroglyphs',    title: 'Hieroglyphs',      safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIEROGLYPHS) },
-    { key: 'yangtan',        title: 'Yangtan',          safety: 'warn', group: 'extra', size: 1.00, fn: t => mapLookup(t, YANGTAN) }
+    { key: 'hieroglyphs',    title: 'Hieroglyphs',      safety: 'risk', group: 'extra', size: 1.00, fn: t => mapLookup(t, HIEROGLYPHS) }
   ];
 
   const STYLE_FNS = {};
@@ -541,30 +549,48 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  function renderCardsForGroup(group, container) {
-    const defs = STYLE_DEFS.filter(function (d) { return d.group === group; });
-    container.innerHTML = defs.map(cardTemplate).join('');
+  function renderCardsSlice(start, count, container, append) {
+    const defs = STYLE_DEFS.slice(start, start + count);
+    const html = defs.map(cardTemplate).join('');
+    if (append) {
+      container.insertAdjacentHTML('beforeend', html);
+    } else {
+      container.innerHTML = html;
+    }
     defs.forEach(function (d) { buildStyleRefs(d.key); });
     return defs.map(function (d) { return d.key; });
   }
 
-  const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
+  const INITIAL_COUNT = 5;
+  const LOAD_MORE_COUNT = 10;
+  let loadedCount = 0;
+  let activeKeys = [];
+
+  // Initially show first 5 styles
+  activeKeys = renderCardsSlice(0, INITIAL_COUNT, defaultStylesContainer, false);
+  loadedCount = INITIAL_COUNT;
 
   const moreStylesToggle = document.getElementById('tpx-ftg-more-styles-toggle');
   if (moreStylesToggle && extraStyles) {
-    const moreStylesText = moreStylesToggle.querySelector('.tpx-ftg-more-styles-text');
+    extraStyles.hidden = false;
+    extraStyles.removeAttribute('hidden');
+
+    if (loadedCount >= STYLE_DEFS.length) {
+      moreStylesToggle.style.display = 'none';
+    }
+
     moreStylesToggle.addEventListener('click', function () {
-      const isExpanded = moreStylesToggle.getAttribute('aria-expanded') === 'true';
-      moreStylesToggle.setAttribute('aria-expanded', String(!isExpanded));
-      extraStyles.hidden = isExpanded;
-      if (moreStylesText) {
-        moreStylesText.textContent = isExpanded ? 'Show More Styles' : 'Show Less Styles';
+      if (loadedCount >= STYLE_DEFS.length) {
+        moreStylesToggle.style.display = 'none';
+        return;
       }
-      if (!isExpanded && !extraStylesRevealed) {
-        extraStylesRevealed = true;
-        const extraKeys = renderCardsForGroup('extra', extraStyles);
-        const text = ta.value;
-        renderKeys(extraKeys, text, text.trim() === '');
+      const nextKeys = renderCardsSlice(loadedCount, LOAD_MORE_COUNT, extraStyles, true);
+      activeKeys = activeKeys.concat(nextKeys);
+      loadedCount += nextKeys.length;
+      const text = ta.value;
+      renderKeys(nextKeys, text, text.trim() === '');
+      if (loadedCount >= STYLE_DEFS.length) {
+        moreStylesToggle.style.display = 'none';
       }
     });
   }
@@ -598,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function getActiveKeys() {
-    return extraStylesRevealed ? Object.keys(STYLE_FNS) : DEFAULT_VISIBLE_KEYS;
+    return activeKeys;
   }
 
   function render() {
@@ -747,8 +773,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---- Footer actions ---- */
   document.getElementById('tpx-ftg-btn-paste').addEventListener('click', function () {
-    // BUG FIX: previously failed silently (no feedback) when clipboard
-    // permission was denied or unavailable — now announces the failure.
     navigator.clipboard.readText().then(function (t) {
       ta.value += t;
       render();
@@ -779,12 +803,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tpx-ftg-file-uploader').click();
   });
 
-  // BUG FIX: .docx uploads previously did nothing but announce a TODO message
-  // ("wire up as in Word Counter") — the file input still advertised .docx
-  // support via `accept`, so this silently failed for every real user who
-  // uploaded a Word file. Now mirrors the PDF/Word Counter pattern: lazily
-  // load Mammoth.js from CDN and extract the raw text client-side (the file
-  // itself never leaves the browser, matching ToolPX's privacy promise).
   let mammothLoadPromise = null;
   function loadMammoth() {
     if (window.mammoth) return Promise.resolve();
