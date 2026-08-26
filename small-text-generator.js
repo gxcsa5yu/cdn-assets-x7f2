@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const defaultStylesContainer = document.getElementById('tpx-stg-default-styles');
   const extraStyles = document.getElementById('tpx-stg-extra-styles');
   const announcer = document.getElementById('tpx-stg-sr-announcer');
-  let extraStylesRevealed = false;
 
   /* ---- Conversion engine ---- */
   function mapContiguous(text, upperBase, lowerBase, digitBase, exceptions) {
@@ -133,8 +132,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---- Style config ----
      size = multiplier for --tpx-stg-scale (1 = normal, >1 bigger, <1 smaller)
-     Order below is the exact order cards render in (default group first,
-     then extra group in the order shown when "Show More Styles" is clicked). */
+     Order below is the exact order cards render in: the first 3 (group
+     'default') load immediately, the remaining 18 (group 'extra') load
+     in "Show More" batches of 10 — see renderCardsSlice below. */
   const SAFETY_LABELS = {
     safe: 'Safe everywhere',
     warn: 'May not render on older devices',
@@ -327,30 +327,50 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  function renderCardsForGroup(group, container) {
-    const defs = STYLE_DEFS.filter(function (d) { return d.group === group; });
-    container.innerHTML = defs.map(cardTemplate).join('');
+  function renderCardsSlice(start, count, container, append) {
+    const defs = STYLE_DEFS.slice(start, start + count);
+    const html = defs.map(cardTemplate).join('');
+    if (append) {
+      container.insertAdjacentHTML('beforeend', html);
+    } else {
+      container.innerHTML = html;
+    }
     defs.forEach(function (d) { buildStyleRefs(d.key); });
     return defs.map(function (d) { return d.key; });
   }
 
-  const DEFAULT_VISIBLE_KEYS = renderCardsForGroup('default', defaultStylesContainer);
+  const INITIAL_COUNT = 3; // the 'default' group: Small Caps, Superscript, Subscript
+  const LOAD_MORE_COUNT = 10;
+  let loadedCount = 0;
+  let activeKeys = [];
+
+  // Initially show the 3 default styles
+  activeKeys = renderCardsSlice(0, INITIAL_COUNT, defaultStylesContainer, false);
+  loadedCount = INITIAL_COUNT;
 
   const moreStylesToggle = document.getElementById('tpx-stg-more-styles-toggle');
   if (moreStylesToggle && extraStyles) {
-    const moreStylesText = moreStylesToggle.querySelector('.tpx-stg-more-styles-text');
+    if (loadedCount >= STYLE_DEFS.length) {
+      moreStylesToggle.style.display = 'none';
+    }
+
+    // Reveals the next 10 styles per click, generating their output
+    // immediately from whatever text is currently in the input. The button
+    // stays pinned at the bottom of the font list (inside the purple
+    // border) and disappears once every style has loaded — the final
+    // batch may be smaller than 10.
     moreStylesToggle.addEventListener('click', function () {
-      const isExpanded = moreStylesToggle.getAttribute('aria-expanded') === 'true';
-      moreStylesToggle.setAttribute('aria-expanded', String(!isExpanded));
-      extraStyles.hidden = isExpanded;
-      if (moreStylesText) {
-        moreStylesText.textContent = isExpanded ? 'Show More Styles' : 'Show Less Styles';
+      if (loadedCount >= STYLE_DEFS.length) {
+        moreStylesToggle.style.display = 'none';
+        return;
       }
-      if (!isExpanded && !extraStylesRevealed) {
-        extraStylesRevealed = true;
-        const extraKeys = renderCardsForGroup('extra', extraStyles);
-        const text = ta.value;
-        renderKeys(extraKeys, text, text.trim() === '');
+      const nextKeys = renderCardsSlice(loadedCount, LOAD_MORE_COUNT, extraStyles, true);
+      activeKeys = activeKeys.concat(nextKeys);
+      loadedCount += nextKeys.length;
+      const text = ta.value;
+      renderKeys(nextKeys, text, text.trim() === '');
+      if (loadedCount >= STYLE_DEFS.length) {
+        moreStylesToggle.style.display = 'none';
       }
     });
   }
@@ -384,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function getActiveKeys() {
-    return extraStylesRevealed ? Object.keys(STYLE_FNS) : DEFAULT_VISIBLE_KEYS;
+    return activeKeys;
   }
 
   function render() {
