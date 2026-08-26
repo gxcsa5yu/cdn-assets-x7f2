@@ -13,6 +13,7 @@ const state={
   textPos:{nx:.5,ny:.5},
   imagePos:{nx:.5,ny:.5},
   watermarkImageData:null,
+  watermarkImageEl:null,
   rendering:false,liveRendering:false,
   baseCanvas:document.createElement('canvas'),
   basePageNum:null,
@@ -36,11 +37,12 @@ const el={
   wmText:$('wpwm-wm-text'),fontSize:$('wpwm-font-size'),fontSizeVal:$('wpwm-font-size-val'),
   textOpacity:$('wpwm-text-opacity'),textOpVal:$('wpwm-text-opacity-val'),
   rotation:$('wpwm-rotation'),rotationVal:$('wpwm-rotation-val'),
-  textColor:$('wpwm-text-color'),colorHex:$('wpwm-color-hex'),
+  textColor:$('wpwm-text-color'),
   imgDropzone:$('wpwm-img-dropzone'),imgInput:$('wpwm-img-input'),
   imgPrevWrap:$('wpwm-img-preview-wrap'),imgThumb:$('wpwm-img-thumb'),
   removeImg:$('wpwm-remove-img'),imgSize:$('wpwm-img-size'),imgSizeVal:$('wpwm-img-size-val'),
   imgOpacity:$('wpwm-img-opacity'),imgOpVal:$('wpwm-img-opacity-val'),
+  imgRotation:$('wpwm-img-rotation'),imgRotationVal:$('wpwm-img-rotation-val'),
   applyBtn:$('wpwm-apply-btn'),downloadBtn:$('wpwm-download-btn'),
   canvas:$('wpwm-canvas'),placeholder:$('wpwm-preview-placeholder'),
   pageInfo:$('wpwm-page-info'),prevPage:$('wpwm-prev-page'),nextPage:$('wpwm-next-page'),
@@ -50,10 +52,15 @@ const hideLoader=()=>el.loader.classList.add('wpwm-hidden');
 function showError(msg){el.error.textContent=msg;el.error.classList.remove('wpwm-hidden');setTimeout(()=>el.error.classList.add('wpwm-hidden'),6000);}
 function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
 function hexToRgb01(hex){return{r:parseInt(hex.slice(1,3),16)/255,g:parseInt(hex.slice(3,5),16)/255,b:parseInt(hex.slice(5,7),16)/255};}
-function calcPos(nx,ny,pw,ph,ww,wh){const pad=12;const uw=Math.max(0,pw-ww-pad*2);const uh=Math.max(0,ph-wh-pad*2);return{x:pad+Math.max(0,Math.min(1,nx))*uw,y:pad+Math.max(0,Math.min(1,1-ny))*uh};}
-function getTilePositions(pw,ph,tw,th,pattern,nx,ny){
+function calcPos(nx,ny,pw,ph,ww,wh,flipY){
+  const pad=12;const uw=Math.max(0,pw-ww-pad*2);const uh=Math.max(0,ph-wh-pad*2);
+  const nyClamped=Math.max(0,Math.min(1,ny));
+  const ny2=flipY?(1-nyClamped):nyClamped;
+  return{x:pad+Math.max(0,Math.min(1,nx))*uw,y:pad+ny2*uh};
+}
+function getTilePositions(pw,ph,tw,th,pattern,nx,ny,flipY){
   if(pattern==='single'){
-    const pos=calcPos(nx,ny,pw,ph,tw,th);
+    const pos=calcPos(nx,ny,pw,ph,tw,th,flipY);
     return[{x:pos.x+tw/2,y:pos.y+th/2}];
   }
   const hFactor=parseInt(el.hSpacing.value,10)/100;
@@ -137,7 +144,7 @@ async function drawLive(){
       ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
       const tw=ctx.measureText(text).width;const th=fs*0.70;
       const rad=rot*Math.PI/180;
-      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny);
+      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false);
       positions.forEach(p=>{
         ctx.save();
         ctx.translate(p.x,p.y);
@@ -146,6 +153,26 @@ async function drawLive(){
         ctx.restore();
       });
       ctx.restore();
+    }else if(state.activeTab==='image'){
+      const im=state.watermarkImageEl;
+      if(im){if(im.complete){if(im.naturalWidth>0){
+        const sp=parseInt(el.imgSize.value,10)/100;
+        const op=parseInt(el.imgOpacity.value,10)/100;
+        const rot=parseInt(el.imgRotation.value,10);
+        const{nx,ny}=state.imagePos;
+        const iw=im.naturalWidth,ih=im.naturalHeight;
+        const scale=sp*Math.min(vpWidth,vpHeight)/Math.max(iw,ih);
+        const dw=iw*scale,dh=ih*scale;
+        const pos=calcPos(nx,ny,vpWidth,vpHeight,dw,dh,false);
+        const cx=pos.x+dw/2,cy=pos.y+dh/2;
+        const rad=rot*Math.PI/180;
+        ctx.save();
+        ctx.globalAlpha=op;
+        ctx.translate(cx,cy);
+        ctx.rotate(-rad);
+        ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
+        ctx.restore();
+      }}}
     }
     el.pageInfo.textContent='Page '+state.currentPage+' / '+state.totalPages;
   }catch(e){console.warn('live preview:',e);}
@@ -175,7 +202,7 @@ async function applyText(){
   const rad=rot*Math.PI/180;
   doc.getPages().forEach(page=>{
     const{width,height}=page.getSize();const tw=font.widthOfTextAtSize(text,fs);const th=fs*0.72;
-    const positions=getTilePositions(width,height,tw,th,state.pattern,nx,ny);
+    const positions=getTilePositions(width,height,tw,th,state.pattern,nx,ny,true);
     positions.forEach(p=>{
       const{dx,dy}=textOriginForCenter(p.x,p.y,tw,th,rad);
       page.drawText(text,{x:dx,y:dy,size:fs,font,color:rgb(r,g,b),opacity:op,rotate:degrees(rot)});
@@ -186,6 +213,7 @@ async function applyText(){
 async function applyImage(){
   if(!state.watermarkImageData){showError('Please upload a watermark image first.');return null;}
   const sp=parseInt(el.imgSize.value,10)/100;const op=parseInt(el.imgOpacity.value,10)/100;
+  const rot=parseInt(el.imgRotation.value,10);
   const{nx,ny}=state.imagePos;
   const doc=await PDFDocument.load(state.pdfBytes.slice(0));
   const dataUrl=state.watermarkImageData;const b64=dataUrl.split(',')[1];
@@ -194,11 +222,14 @@ async function applyImage(){
   let img;
   try{img=dataUrl.includes('image/png')||dataUrl.includes('image/svg')?await doc.embedPng(bytes):await doc.embedJpg(bytes);}
   catch(e1){try{img=await doc.embedPng(bytes);}catch(e2){showError('Cannot embed image - use PNG or JPG.');return null;}}
+  const rad=rot*Math.PI/180;
   for(const page of doc.getPages()){
     const{width,height}=page.getSize();
     const d=img.scale(sp*Math.min(width,height)/Math.max(img.width,img.height));
-    const{x,y}=calcPos(nx,ny,width,height,d.width,d.height);
-    page.drawImage(img,{x,y,width:d.width,height:d.height,opacity:op});
+    const pos=calcPos(nx,ny,width,height,d.width,d.height,true);
+    const cx=pos.x+d.width/2,cy=pos.y+d.height/2;
+    const{dx,dy}=textOriginForCenter(cx,cy,d.width,d.height,rad);
+    page.drawImage(img,{x:dx,y:dy,width:d.width,height:d.height,opacity:op,rotate:degrees(rot)});
   }
   return await doc.save();
 }
@@ -240,19 +271,34 @@ function setupJoystick(padId,handleId,labelId,stateKey,moveCb){
   pad.addEventListener('keydown',e=>{const s=.05;let{nx,ny}=state[stateKey];if(e.key==='ArrowLeft'){nx-=s;e.preventDefault();}else if(e.key==='ArrowRight'){nx+=s;e.preventDefault();}else if(e.key==='ArrowUp'){ny-=s;e.preventDefault();}else if(e.key==='ArrowDown'){ny+=s;e.preventDefault();}else return;moveTo(nx,ny);});
   moveTo(.5,.5);
 }
+function refreshPreview(){
+  if(state.watermarkedBytes){renderPage(state.currentPage);}
+  else{scheduleLive();}
+}
 function switchTab(tab){
   state.activeTab=tab;
-  if(tab==='text'){el.tabText.classList.add('wpwm-tab-active');el.tabImage.classList.remove('wpwm-tab-active');el.textOptions.classList.remove('wpwm-hidden');el.imageOptions.classList.add('wpwm-hidden');scheduleLive();}
-  else{el.tabImage.classList.add('wpwm-tab-active');el.tabText.classList.remove('wpwm-tab-active');el.imageOptions.classList.remove('wpwm-hidden');el.textOptions.classList.add('wpwm-hidden');if(state.originalPdfJsDoc){state.pdfJsDoc=state.originalPdfJsDoc;renderPage(state.currentPage);}}
+  if(tab==='text'){el.tabText.classList.add('wpwm-tab-active');el.tabImage.classList.remove('wpwm-tab-active');el.textOptions.classList.remove('wpwm-hidden');el.imageOptions.classList.add('wpwm-hidden');}
+  else{el.tabImage.classList.add('wpwm-tab-active');el.tabText.classList.remove('wpwm-tab-active');el.imageOptions.classList.remove('wpwm-hidden');el.textOptions.classList.add('wpwm-hidden');}
+  refreshPreview();
 }
 function handleWmImage(file){
   if(!file||!file.type.startsWith('image/')){showError('Please upload PNG or JPG.');return;}
   const reader=new FileReader();
-  reader.onload=e=>{state.watermarkImageData=e.target.result;el.imgThumb.src=e.target.result;el.imgPrevWrap.classList.remove('wpwm-hidden');el.imgDropzone.style.display='none';};
+  reader.onload=e=>{
+    state.watermarkImageData=e.target.result;
+    el.imgThumb.src=e.target.result;
+    el.imgPrevWrap.classList.remove('wpwm-hidden');
+    el.imgDropzone.style.display='none';
+    const im=new Image();
+    im.onload=()=>{state.watermarkImageEl=im;scheduleLive();};
+    im.onerror=()=>{showError('Failed to load image.');};
+    im.src=e.target.result;
+  };
+  reader.onerror=()=>{showError('Failed to read image file.');};
   reader.readAsDataURL(file);
 }
-function goPrev(){if(state.currentPage<=1)return;state.currentPage--;state.activeTab==='text'?scheduleLive():renderPage(state.currentPage);}
-function goNext(){if(state.currentPage>=state.totalPages)return;state.currentPage++;state.activeTab==='text'?scheduleLive():renderPage(state.currentPage);}
+function goPrev(){if(state.currentPage<=1)return;state.currentPage--;refreshPreview();}
+function goNext(){if(state.currentPage>=state.totalPages)return;state.currentPage++;refreshPreview();}
 function init(){
   el.dropzone.addEventListener('dragover',e=>{e.preventDefault();el.dropzone.classList.add('wpwm-drag-over');});
   el.dropzone.addEventListener('dragleave',()=>el.dropzone.classList.remove('wpwm-drag-over'));
@@ -285,7 +331,7 @@ function init(){
   });
   document.querySelectorAll('.wpwm-swatch').forEach(sw=>{
     sw.addEventListener('click',()=>{
-      const c=sw.dataset.color;el.textColor.value=c;el.colorHex.textContent=c;
+      const c=sw.dataset.color;el.textColor.value=c;
       document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
       sw.classList.add('wpwm-swatch-active');scheduleLive();
     });
@@ -295,22 +341,26 @@ function init(){
   syncRange(el.rotation,el.rotationVal,scheduleLive);
   syncRange(el.hSpacing,el.hSpacingVal,scheduleLive);
   syncRange(el.vSpacing,el.vSpacingVal,scheduleLive);
-  syncRange(el.imgSize,el.imgSizeVal);
-  syncRange(el.imgOpacity,el.imgOpVal);
+  syncRange(el.imgSize,el.imgSizeVal,scheduleLive);
+  syncRange(el.imgOpacity,el.imgOpVal,scheduleLive);
+  syncRange(el.imgRotation,el.imgRotationVal,scheduleLive);
   el.wmText.addEventListener('input',scheduleLive);
   el.textColor.addEventListener('input',()=>{
-    el.colorHex.textContent=el.textColor.value;
     document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
     scheduleLive();
   });
   setupJoystick('wpwm-text-joystick','wpwm-text-handle','wpwm-text-pos-label','textPos',scheduleLive);
-  setupJoystick('wpwm-img-joystick','wpwm-img-handle','wpwm-img-pos-label','imagePos',null);
+  setupJoystick('wpwm-img-joystick','wpwm-img-handle','wpwm-img-pos-label','imagePos',scheduleLive);
   el.imgDropzone.addEventListener('click',()=>el.imgInput.click());
   el.imgDropzone.addEventListener('dragover',e=>{e.preventDefault();el.imgDropzone.classList.add('wpwm-drag-over');});
   el.imgDropzone.addEventListener('dragleave',()=>el.imgDropzone.classList.remove('wpwm-drag-over'));
   el.imgDropzone.addEventListener('drop',e=>{e.preventDefault();el.imgDropzone.classList.remove('wpwm-drag-over');if(e.dataTransfer.files[0])handleWmImage(e.dataTransfer.files[0]);});
   el.imgInput.addEventListener('change',e=>{if(e.target.files[0])handleWmImage(e.target.files[0]);});
-  el.removeImg.addEventListener('click',()=>{state.watermarkImageData=null;el.imgThumb.src='';el.imgPrevWrap.classList.add('wpwm-hidden');el.imgDropzone.style.display='';el.imgInput.value='';});
+  el.removeImg.addEventListener('click',()=>{
+    state.watermarkImageData=null;state.watermarkImageEl=null;
+    el.imgThumb.src='';el.imgPrevWrap.classList.add('wpwm-hidden');el.imgDropzone.style.display='';el.imgInput.value='';
+    scheduleLive();
+  });
   el.applyBtn.addEventListener('click',handleApply);
   el.downloadBtn.addEventListener('click',handleDownload);
   el.prevPage.addEventListener('click',goPrev);
