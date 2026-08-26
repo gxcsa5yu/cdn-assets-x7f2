@@ -252,7 +252,24 @@ function handleDownload(){
   a.href=url;a.download=name+'_watermarked.pdf';document.body.appendChild(a);a.click();
   document.body.removeChild(a);URL.revokeObjectURL(url);
 }
-function syncRange(inp,disp,cb){inp.addEventListener('input',()=>{disp.textContent=inp.value;if(cb)cb();});}
+function updateSliderFill(input,bipolar){
+  const min=parseFloat(input.min);
+  const max=parseFloat(input.max);
+  const val=parseFloat(input.value);
+  const pct=(val-min)/(max-min)*100;
+  if(bipolar){
+    const centerPct=(0-min)/(max-min)*100;
+    const lo=Math.min(centerPct,pct);
+    const hi=Math.max(centerPct,pct);
+    input.style.background='linear-gradient(to right, #e2e8f0 0%, #e2e8f0 '+lo+'%, #2563eb '+lo+'%, #2563eb '+hi+'%, #e2e8f0 '+hi+'%, #e2e8f0 100%)';
+  }else{
+    input.style.background='linear-gradient(to right, #2563eb 0%, #2563eb '+pct+'%, #e2e8f0 '+pct+'%, #e2e8f0 100%)';
+  }
+}
+function syncRange(inp,disp,cb,bipolar){
+  updateSliderFill(inp,bipolar);
+  inp.addEventListener('input',()=>{if(disp)disp.textContent=inp.value;updateSliderFill(inp,bipolar);if(cb)cb();});
+}
 function canvasPointFromEvent(evt){
   const rect=el.canvas.getBoundingClientRect();
   let clientX,clientY;
@@ -393,9 +410,9 @@ function init(){
       el.tileSpacingField.classList.toggle('wpwm-hidden',isSingle);
       const curFontSize=parseInt(el.fontSize.value,10);
       if(isSingle){
-        if(curFontSize===30){el.fontSize.value=48;el.fontSizeVal.textContent='48';}
+        if(curFontSize===30){el.fontSize.value=48;el.fontSizeVal.textContent='48';updateSliderFill(el.fontSize);}
       }else{
-        if(curFontSize===48){el.fontSize.value=30;el.fontSizeVal.textContent='30';}
+        if(curFontSize===48){el.fontSize.value=30;el.fontSizeVal.textContent='30';updateSliderFill(el.fontSize);}
       }
       scheduleLive();
     });
@@ -412,12 +429,12 @@ function init(){
   });
   syncRange(el.fontSize,el.fontSizeVal,scheduleLive);
   syncRange(el.textOpacity,el.textOpVal,scheduleLive);
-  syncRange(el.rotation,el.rotationVal,scheduleLive);
+  syncRange(el.rotation,el.rotationVal,scheduleLive,true);
   syncRange(el.hSpacing,el.hSpacingVal,scheduleLive);
   syncRange(el.vSpacing,el.vSpacingVal,scheduleLive);
   syncRange(el.imgSize,el.imgSizeVal,scheduleLive);
   syncRange(el.imgOpacity,el.imgOpVal,scheduleLive);
-  syncRange(el.imgRotation,el.imgRotationVal,scheduleLive);
+  syncRange(el.imgRotation,el.imgRotationVal,scheduleLive,true);
   el.wmText.addEventListener('input',scheduleLive);
   el.textColor.addEventListener('input',()=>{
     document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
