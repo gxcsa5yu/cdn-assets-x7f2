@@ -391,6 +391,12 @@ function init(){
       state.pattern=btn.dataset.pattern;
       const isSingle=state.pattern==='single';
       el.tileSpacingField.classList.toggle('wpwm-hidden',isSingle);
+      const curFontSize=parseInt(el.fontSize.value,10);
+      if(isSingle){
+        if(curFontSize===30){el.fontSize.value=48;el.fontSizeVal.textContent='48';}
+      }else{
+        if(curFontSize===48){el.fontSize.value=30;el.fontSizeVal.textContent='30';}
+      }
       scheduleLive();
     });
   });
