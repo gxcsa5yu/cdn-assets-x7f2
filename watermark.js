@@ -98,8 +98,8 @@ function hsvToRgb(h,s,v){
 }
 function getFontSettings(){
   let bold=false,italic=false;
-  if(el.styleBoldBtn.classList.contains('wpwm-pattern-active'))bold=true;
-  if(el.styleItalicBtn.classList.contains('wpwm-pattern-active'))italic=true;
+  if(el.styleBoldBtn.classList.contains('wpwm-style-active'))bold=true;
+  if(el.styleItalicBtn.classList.contains('wpwm-style-active'))italic=true;
   return{family:el.fontFamily.value,bold,italic};
 }
 function getFontFamilyCss(family){
@@ -731,7 +731,7 @@ function init(){
   el.fontFamily.addEventListener('change',scheduleLive);
   [el.styleBoldBtn,el.styleItalicBtn].forEach(btn=>{
     btn.addEventListener('click',()=>{
-      btn.classList.toggle('wpwm-pattern-active');
+      btn.classList.toggle('wpwm-style-active');
       scheduleLive();
     });
   });
