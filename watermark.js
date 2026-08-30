@@ -146,7 +146,7 @@ function parseColorInput(val){
     const g=Math.max(0,Math.min(255,parseInt(rgbaMatch[2],10)));
     const b=Math.max(0,Math.min(255,parseInt(rgbaMatch[3],10)));
     let a=null;
-    if(rgbaMatch[4]!==undefined){a=Math.max(0,Math.min(1,parseFloat(rgbaMatch[4]));}
+    if(rgbaMatch[4]!==undefined){a=Math.max(0,Math.min(1,parseFloat(rgbaMatch[4])));}
     return{r,g,b,a};
   }
   let hex=val;
@@ -328,11 +328,9 @@ async function drawLive(){
         ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
         const metrics=ctx.measureText(text);
         const tw=metrics.width;
-        // Use real metrics when available, fallback to previous approximation
         const ascent=metrics.actualBoundingBoxAscent||(fs*0.8);
         const descent=metrics.actualBoundingBoxDescent||(fs*0.2);
         const th=ascent+descent;
-        // Baseline chosen so visual center of the text sits at local (0,0)
         const baselineY=(ascent-descent)/2;
         const rad=rot*Math.PI/180;
         const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false,1.5);
@@ -345,9 +343,7 @@ async function drawLive(){
         });
         ctx.restore();
         if(state.pattern==='single'){
-          // Show border only while dragging, or while hovering BEFORE Apply
           if(state.drag||(state.hoverActive&&!state.watermarkedBytes)){
-            // p is already the visual center (because we centered with baselineY)
             drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
           }
         }
@@ -451,7 +447,6 @@ async function handleApply(){
   if(!state.pdfBytes)return;
   if(el.applyBtn.disabled)return;
 
-  // Cancel any pending live redraw so it cannot overwrite the applied result
   if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
 
   state.hoverActive=false;
@@ -712,7 +707,6 @@ function setupCanvasDrag(){
     el.canvas.style.cursor=hit?'grab':'default';
     if(hit!==state.hoverActive){
       state.hoverActive=hit;
-      // Only refresh live preview on hover when still un-applied
       if(!state.watermarkedBytes){
         scheduleLive();
       }
@@ -723,7 +717,6 @@ function setupCanvasDrag(){
       state.drag=null;
       state.hoverActive=false;
       el.canvas.style.cursor='default';
-      // After drag we always want the live view (so user sees the new position)
       scheduleLive();
     }
   }
@@ -734,7 +727,6 @@ function setupCanvasDrag(){
     if(!state.drag){
       if(state.hoverActive){
         state.hoverActive=false;
-        // Only redraw if we are still in live (un-applied) mode
         if(!state.watermarkedBytes) scheduleLive();
       }
       el.canvas.style.cursor='default';
