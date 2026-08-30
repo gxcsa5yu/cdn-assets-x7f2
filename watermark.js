@@ -334,7 +334,8 @@ async function drawLive(){
       });
       ctx.restore();
       if(state.pattern==='single'){
-        if(state.hoverActive||state.drag){
+        // Only show selection box while dragging, or while hovering BEFORE apply
+        if(state.drag || (state.hoverActive && !state.watermarkedBytes)){
           drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
         }
       }
@@ -357,7 +358,8 @@ async function drawLive(){
         ctx.rotate(-rad);
         ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
         ctx.restore();
-        if(state.hoverActive||state.drag){
+        // Only show selection box while dragging, or while hovering BEFORE apply
+        if(state.drag || (state.hoverActive && !state.watermarkedBytes)){
           drawSelectionBorder(ctx,cx,cy,dw,dh,rad);
         }
       }}}
@@ -688,7 +690,11 @@ function setupCanvasDrag(){
     el.canvas.style.cursor=hit?'grab':'default';
     if(hit!==state.hoverActive){
       state.hoverActive=hit;
-      scheduleLive();
+      // Only refresh live preview on hover when still in un-applied state.
+      // After Apply we keep the final rendered PDF until user changes a setting.
+      if(!state.watermarkedBytes){
+        scheduleLive();
+      }
     }
   }
   function up(){
