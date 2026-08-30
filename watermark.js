@@ -146,7 +146,7 @@ function parseColorInput(val){
     const g=Math.max(0,Math.min(255,parseInt(rgbaMatch[2],10)));
     const b=Math.max(0,Math.min(255,parseInt(rgbaMatch[3],10)));
     let a=null;
-    if(rgbaMatch[4]!==undefined){a=Math.max(0,Math.min(1,parseFloat(rgbaMatch[4])));}
+    if(rgbaMatch[4]!==undefined){a=Math.max(0,Math.min(1,parseFloat(rgbaMatch[4]));}
     return{r,g,b,a};
   }
   let hex=val;
@@ -273,7 +273,11 @@ async function loadPDF(file){
   }catch(e){showError('Failed to load PDF: '+e.message);}
   finally{hideLoader();}
 }
-function scheduleLive(){if(!state.originalPdfJsDoc)return;if(_liveRafId)cancelAnimationFrame(_liveRafId);_liveRafId=requestAnimationFrame(()=>{_liveRafId=null;queueCanvasTask(drawLive);});}
+function scheduleLive(){
+  if(!state.originalPdfJsDoc)return;
+  if(_liveRafId)cancelAnimationFrame(_liveRafId);
+  _liveRafId=requestAnimationFrame(()=>{_liveRafId=null;queueCanvasTask(drawLive);});
+}
 async function renderBasePage(){
   const SCALE=1.5;
   const page=await state.originalPdfJsDoc.getPage(state.currentPage);
@@ -313,57 +317,64 @@ async function drawLive(){
     ctx.drawImage(state.baseCanvas,0,0);
     const pageTargeted=isCurrentPageTargeted();
     if(pageTargeted){
-    if(state.activeTab==='text'){
-      const text=el.wmText.value.trim()||'WATERMARK';
-      const fs=parseInt(el.fontSize.value,10)*1.5;
-      const op=parseInt(el.textOpacity.value,10)/100;
-      const rot=parseInt(el.rotation.value,10);
-      const{nx,ny}=state.textPos;
-      ctx.save();ctx.globalAlpha=op;
-      ctx.font=buildCanvasFont(fs);
-      ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
-      const tw=ctx.measureText(text).width;const th=fs*0.70;
-      const rad=rot*Math.PI/180;
-      const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false,1.5);
-      positions.forEach(p=>{
-        ctx.save();
-        ctx.translate(p.x,p.y);
-        ctx.rotate(-rad);
-        ctx.fillText(text,-tw/2,th*0.85);
-        ctx.restore();
-      });
-      ctx.restore();
-      if(state.pattern==='single'){
-        // Only show selection box while dragging, or while hovering BEFORE apply
-        if(state.drag || (state.hoverActive && !state.watermarkedBytes)){
-          drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
-        }
-      }
-    }else if(state.activeTab==='image'){
-      const im=state.watermarkImageEl;
-      if(im){if(im.complete){if(im.naturalWidth>0){
-        const sp=parseInt(el.imgSize.value,10)/100;
-        const op=parseInt(el.imgOpacity.value,10)/100;
-        const rot=parseInt(el.imgRotation.value,10);
-        const{nx,ny}=state.imagePos;
-        const iw=im.naturalWidth,ih=im.naturalHeight;
-        const scale=sp*Math.min(vpWidth,vpHeight)/Math.max(iw,ih);
-        const dw=iw*scale,dh=ih*scale;
-        const pos=calcPos(nx,ny,vpWidth,vpHeight,dw,dh,false);
-        const cx=pos.x+dw/2,cy=pos.y+dh/2;
+      if(state.activeTab==='text'){
+        const text=el.wmText.value.trim()||'WATERMARK';
+        const fs=parseInt(el.fontSize.value,10)*1.5;
+        const op=parseInt(el.textOpacity.value,10)/100;
+        const rot=parseInt(el.rotation.value,10);
+        const{nx,ny}=state.textPos;
+        ctx.save();ctx.globalAlpha=op;
+        ctx.font=buildCanvasFont(fs);
+        ctx.fillStyle=el.textColor.value;ctx.textBaseline='alphabetic';
+        const metrics=ctx.measureText(text);
+        const tw=metrics.width;
+        // Use real metrics when available, fallback to previous approximation
+        const ascent=metrics.actualBoundingBoxAscent||(fs*0.8);
+        const descent=metrics.actualBoundingBoxDescent||(fs*0.2);
+        const th=ascent+descent;
+        // Baseline chosen so visual center of the text sits at local (0,0)
+        const baselineY=(ascent-descent)/2;
         const rad=rot*Math.PI/180;
-        ctx.save();
-        ctx.globalAlpha=op;
-        ctx.translate(cx,cy);
-        ctx.rotate(-rad);
-        ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
+        const positions=getTilePositions(vpWidth,vpHeight,tw,th,state.pattern,nx,ny,false,1.5);
+        positions.forEach(p=>{
+          ctx.save();
+          ctx.translate(p.x,p.y);
+          ctx.rotate(-rad);
+          ctx.fillText(text,-tw/2,baselineY);
+          ctx.restore();
+        });
         ctx.restore();
-        // Only show selection box while dragging, or while hovering BEFORE apply
-        if(state.drag || (state.hoverActive && !state.watermarkedBytes)){
-          drawSelectionBorder(ctx,cx,cy,dw,dh,rad);
+        if(state.pattern==='single'){
+          // Show border only while dragging, or while hovering BEFORE Apply
+          if(state.drag||(state.hoverActive&&!state.watermarkedBytes)){
+            // p is already the visual center (because we centered with baselineY)
+            drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
+          }
         }
-      }}}
-    }
+      }else if(state.activeTab==='image'){
+        const im=state.watermarkImageEl;
+        if(im){if(im.complete){if(im.naturalWidth>0){
+          const sp=parseInt(el.imgSize.value,10)/100;
+          const op=parseInt(el.imgOpacity.value,10)/100;
+          const rot=parseInt(el.imgRotation.value,10);
+          const{nx,ny}=state.imagePos;
+          const iw=im.naturalWidth,ih=im.naturalHeight;
+          const scale=sp*Math.min(vpWidth,vpHeight)/Math.max(iw,ih);
+          const dw=iw*scale,dh=ih*scale;
+          const pos=calcPos(nx,ny,vpWidth,vpHeight,dw,dh,false);
+          const cx=pos.x+dw/2,cy=pos.y+dh/2;
+          const rad=rot*Math.PI/180;
+          ctx.save();
+          ctx.globalAlpha=op;
+          ctx.translate(cx,cy);
+          ctx.rotate(-rad);
+          ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
+          ctx.restore();
+          if(state.drag||(state.hoverActive&&!state.watermarkedBytes)){
+            drawSelectionBorder(ctx,cx,cy,dw,dh,rad);
+          }
+        }}}
+      }
     }
     el.pageInfo.textContent='Page '+state.currentPage+' / '+state.totalPages;
   }catch(e){console.warn('live preview:',e);}
@@ -439,7 +450,13 @@ function resetApplyButton(){
 async function handleApply(){
   if(!state.pdfBytes)return;
   if(el.applyBtn.disabled)return;
-  state.hoverActive=false;state.drag=null;
+
+  // Cancel any pending live redraw so it cannot overwrite the applied result
+  if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
+
+  state.hoverActive=false;
+  state.drag=null;
+
   el.applyBtn.disabled=true;
   el.applyLabel.textContent='Applying...';
   el.applyIcon.innerHTML='<line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>';
@@ -452,7 +469,8 @@ async function handleApply(){
     state.pdfJsDoc=await pdfjsLib.getDocument({data:new Uint8Array(bytes)}).promise;
     state.totalPages=state.pdfJsDoc.numPages;
     el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
-    await renderPage(state.currentPage);el.downloadBtn.classList.remove('wpwm-hidden');
+    await renderPage(state.currentPage);
+    el.downloadBtn.classList.remove('wpwm-hidden');
   }catch(e){showError('Failed to apply watermark: '+e.message);}
   finally{hideLoader();resetApplyButton();}
 }
@@ -505,7 +523,11 @@ function getActiveDragBox(){
     const fs=parseInt(el.fontSize.value,10)*1.5;
     const mctx=el.canvas.getContext('2d');
     mctx.font=buildCanvasFont(fs);
-    const tw=mctx.measureText(text).width;const th=fs*0.70;
+    const metrics=mctx.measureText(text);
+    const tw=metrics.width;
+    const ascent=metrics.actualBoundingBoxAscent||(fs*0.8);
+    const descent=metrics.actualBoundingBoxDescent||(fs*0.2);
+    const th=ascent+descent;
     const rot=parseInt(el.rotation.value,10);
     const pos=calcPos(state.textPos.nx,state.textPos.ny,vpWidth,vpHeight,tw,th,false);
     return{cx:pos.x+tw/2,cy:pos.y+th/2,w:tw,h:th,rad:rot*Math.PI/180,type:'text'};
@@ -690,8 +712,7 @@ function setupCanvasDrag(){
     el.canvas.style.cursor=hit?'grab':'default';
     if(hit!==state.hoverActive){
       state.hoverActive=hit;
-      // Only refresh live preview on hover when still in un-applied state.
-      // After Apply we keep the final rendered PDF until user changes a setting.
+      // Only refresh live preview on hover when still un-applied
       if(!state.watermarkedBytes){
         scheduleLive();
       }
@@ -702,6 +723,7 @@ function setupCanvasDrag(){
       state.drag=null;
       state.hoverActive=false;
       el.canvas.style.cursor='default';
+      // After drag we always want the live view (so user sees the new position)
       scheduleLive();
     }
   }
@@ -710,7 +732,11 @@ function setupCanvasDrag(){
   document.addEventListener('mouseup',up);
   el.canvas.addEventListener('mouseleave',()=>{
     if(!state.drag){
-      if(state.hoverActive){state.hoverActive=false;scheduleLive();}
+      if(state.hoverActive){
+        state.hoverActive=false;
+        // Only redraw if we are still in live (un-applied) mode
+        if(!state.watermarkedBytes) scheduleLive();
+      }
       el.canvas.style.cursor='default';
     }
   });
