@@ -21,6 +21,7 @@ const state={
   renderTask:null,
   drag:null,
   hoverActive:false,
+  forceAppliedView:false,   // <-- new lock
 };
 let _liveRafId=null;
 let _canvasQueue=Promise.resolve();
@@ -258,6 +259,7 @@ async function loadPDF(file){
   try{
     const buf=await file.arrayBuffer();
     state.pdfFile=file;state.pdfBytes=buf.slice(0);state.watermarkedBytes=null;
+    state.forceAppliedView=false;
     state.pdfDoc=await PDFDocument.load(buf);
     state.totalPages=state.pdfDoc.getPageCount();state.currentPage=1;
     const u8=new Uint8Array(buf.slice(0));
@@ -275,6 +277,9 @@ async function loadPDF(file){
 }
 function scheduleLive(){
   if(!state.originalPdfJsDoc)return;
+  // While the applied view is locked, ignore pure live requests
+  // (drag is allowed and will release the lock)
+  if(state.forceAppliedView && !state.drag)return;
   if(_liveRafId)cancelAnimationFrame(_liveRafId);
   _liveRafId=requestAnimationFrame(()=>{_liveRafId=null;queueCanvasTask(drawLive);});
 }
@@ -343,7 +348,8 @@ async function drawLive(){
         });
         ctx.restore();
         if(state.pattern==='single'){
-          if(state.drag||(state.hoverActive&&!state.watermarkedBytes)){
+          // Border only while dragging or hovering BEFORE Apply
+          if(state.drag || (state.hoverActive && !state.forceAppliedView)){
             drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
           }
         }
@@ -366,7 +372,7 @@ async function drawLive(){
           ctx.rotate(-rad);
           ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
           ctx.restore();
-          if(state.drag||(state.hoverActive&&!state.watermarkedBytes)){
+          if(state.drag || (state.hoverActive && !state.forceAppliedView)){
             drawSelectionBorder(ctx,cx,cy,dw,dh,rad);
           }
         }}}
@@ -447,8 +453,8 @@ async function handleApply(){
   if(!state.pdfBytes)return;
   if(el.applyBtn.disabled)return;
 
+  // Hard cancel any pending live work
   if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
-
   state.hoverActive=false;
   state.drag=null;
 
@@ -460,10 +466,19 @@ async function handleApply(){
   try{
     const bytes=state.activeTab==='text'?await applyText():await applyImage();
     if(!bytes){hideLoader();resetApplyButton();return;}
+
     state.watermarkedBytes=bytes;
+    state.forceAppliedView=true;          // lock the view
+    state.hoverActive=false;
+    state.drag=null;
+
     state.pdfJsDoc=await pdfjsLib.getDocument({data:new Uint8Array(bytes)}).promise;
     state.totalPages=state.pdfJsDoc.numPages;
     el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
+
+    // Final cancel in case anything slipped through
+    if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
+
     await renderPage(state.currentPage);
     el.downloadBtn.classList.remove('wpwm-hidden');
   }catch(e){showError('Failed to apply watermark: '+e.message);}
@@ -497,7 +512,13 @@ function updateSliderFill(input,bipolar){
 }
 function syncRange(inp,disp,cb,bipolar){
   updateSliderFill(inp,bipolar);
-  inp.addEventListener('input',()=>{if(disp)disp.textContent=inp.value;updateSliderFill(inp,bipolar);if(cb)cb();});
+  inp.addEventListener('input',()=>{
+    if(disp)disp.textContent=inp.value;
+    updateSliderFill(inp,bipolar);
+    // Any setting change releases the applied lock
+    state.forceAppliedView=false;
+    if(cb)cb();
+  });
 }
 function canvasPointFromEvent(evt){
   const rect=el.canvas.getBoundingClientRect();
@@ -571,6 +592,7 @@ function applyColorPopoverColor(hex){
   el.svHandle.style.top=((1-colorPopoverVal)*100)+'%';
   el.hueSlider.value=colorPopoverHue;
   document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
+  state.forceAppliedView=false;
   scheduleLive();
 }
 function updateColorPopoverUI(){
@@ -657,6 +679,7 @@ function setupColorPopover(){
         updateSliderFill(el.textOpacity);
       }
       updateColorPopoverUIPreserveInput();
+      state.forceAppliedView=false;
       scheduleLive();
     }
   });
@@ -679,6 +702,8 @@ function setupCanvasDrag(){
     const box=getActiveDragBox();
     if(!hitTestBox(pt.x,pt.y,box))return;
     evt.preventDefault();
+    // Starting a drag releases the applied lock
+    state.forceAppliedView=false;
     state.drag={type:box.type,grabDX:pt.x-box.cx,grabDY:pt.y-box.cy,w:box.w,h:box.h};
     state.hoverActive=true;
     el.canvas.style.cursor='grabbing';
@@ -707,7 +732,8 @@ function setupCanvasDrag(){
     el.canvas.style.cursor=hit?'grab':'default';
     if(hit!==state.hoverActive){
       state.hoverActive=hit;
-      if(!state.watermarkedBytes){
+      // Only live-redraw on hover when the applied view is NOT locked
+      if(!state.forceAppliedView){
         scheduleLive();
       }
     }
@@ -727,7 +753,7 @@ function setupCanvasDrag(){
     if(!state.drag){
       if(state.hoverActive){
         state.hoverActive=false;
-        if(!state.watermarkedBytes) scheduleLive();
+        if(!state.forceAppliedView) scheduleLive();
       }
       el.canvas.style.cursor='default';
     }
@@ -738,12 +764,16 @@ function setupCanvasDrag(){
   el.canvas.addEventListener('touchcancel',up);
 }
 function refreshPreview(){
-  if(state.watermarkedBytes){renderPage(state.currentPage);}
-  else{scheduleLive();}
+  if(state.forceAppliedView && state.watermarkedBytes){
+    renderPage(state.currentPage);
+  }else{
+    scheduleLive();
+  }
 }
 function switchTab(tab){
   state.activeTab=tab;
   state.hoverActive=false;state.drag=null;
+  state.forceAppliedView=false;
   if(tab==='text'){el.tabText.classList.add('wpwm-tab-active');el.tabImage.classList.remove('wpwm-tab-active');el.textOptions.classList.remove('wpwm-hidden');el.imageOptions.classList.add('wpwm-hidden');}
   else{el.tabImage.classList.add('wpwm-tab-active');el.tabText.classList.remove('wpwm-tab-active');el.imageOptions.classList.remove('wpwm-hidden');el.textOptions.classList.add('wpwm-hidden');}
   refreshPreview();
@@ -757,7 +787,7 @@ function handleWmImage(file){
     el.imgPrevWrap.classList.remove('wpwm-hidden');
     el.imgDropzone.style.display='none';
     const im=new Image();
-    im.onload=()=>{state.watermarkImageEl=im;scheduleLive();};
+    im.onload=()=>{state.watermarkImageEl=im;state.forceAppliedView=false;scheduleLive();};
     im.onerror=()=>{showError('Failed to load image.');};
     im.src=e.target.result;
   };
@@ -775,7 +805,7 @@ function init(){
   el.fileInput.addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);});
   el.removeFile.addEventListener('click',()=>{
     state.pdfFile=state.pdfBytes=state.pdfDoc=state.pdfJsDoc=state.originalPdfJsDoc=state.watermarkedBytes=null;
-    state.basePageNum=null;state.drag=null;state.hoverActive=false;
+    state.basePageNum=null;state.drag=null;state.hoverActive=false;state.forceAppliedView=false;
     el.outputFilename.value='';
     closeColorPopover();
     el.root.classList.remove('wpwm-file-loaded');el.fileInfo.classList.add('wpwm-hidden');
@@ -789,6 +819,7 @@ function init(){
       document.querySelectorAll('.wpwm-pattern-btn').forEach(b=>b.classList.remove('wpwm-pattern-active'));
       btn.classList.add('wpwm-pattern-active');
       state.pattern=btn.dataset.pattern;
+      state.forceAppliedView=false;
       const isSingle=state.pattern==='single';
       el.tileSpacingField.classList.toggle('wpwm-hidden',isSingle);
       const curFontSize=parseInt(el.fontSize.value,10);
@@ -802,18 +833,21 @@ function init(){
   });
   el.pageRangeMode.addEventListener('change',()=>{
     el.customRangeField.classList.toggle('wpwm-hidden',el.pageRangeMode.value!=='custom');
+    state.forceAppliedView=false;
     scheduleLive();
   });
-  el.customRangeInput.addEventListener('input',scheduleLive);
+  el.customRangeInput.addEventListener('input',()=>{state.forceAppliedView=false;scheduleLive();});
   document.querySelectorAll('.wpwm-suggest-chip').forEach(chip=>{
-    chip.addEventListener('click',()=>{el.wmText.value=chip.dataset.text;scheduleLive();});
+    chip.addEventListener('click',()=>{el.wmText.value=chip.dataset.text;state.forceAppliedView=false;scheduleLive();});
   });
   document.querySelectorAll('.wpwm-swatch').forEach(sw=>{
     sw.addEventListener('click',()=>{
       const c=sw.dataset.color;el.textColor.value=c;
       closeColorPopover();
       document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
-      sw.classList.add('wpwm-swatch-active');scheduleLive();
+      sw.classList.add('wpwm-swatch-active');
+      state.forceAppliedView=false;
+      scheduleLive();
     });
   });
   syncRange(el.fontSize,el.fontSizeVal,scheduleLive);
@@ -824,15 +858,17 @@ function init(){
   syncRange(el.imgSize,el.imgSizeVal,scheduleLive);
   syncRange(el.imgOpacity,el.imgOpVal,scheduleLive);
   syncRange(el.imgRotation,el.imgRotationVal,scheduleLive,true);
-  el.wmText.addEventListener('input',scheduleLive);
+  el.wmText.addEventListener('input',()=>{state.forceAppliedView=false;scheduleLive();});
   el.textColor.addEventListener('input',()=>{
     document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
+    state.forceAppliedView=false;
     scheduleLive();
   });
-  el.fontFamily.addEventListener('change',scheduleLive);
+  el.fontFamily.addEventListener('change',()=>{state.forceAppliedView=false;scheduleLive();});
   [el.styleBoldBtn,el.styleItalicBtn].forEach(btn=>{
     btn.addEventListener('click',()=>{
       btn.classList.toggle('wpwm-style-active');
+      state.forceAppliedView=false;
       scheduleLive();
     });
   });
@@ -846,6 +882,7 @@ function init(){
   el.removeImg.addEventListener('click',()=>{
     state.watermarkImageData=null;state.watermarkImageEl=null;
     el.imgThumb.src='';el.imgPrevWrap.classList.add('wpwm-hidden');el.imgDropzone.style.display='';el.imgInput.value='';
+    state.forceAppliedView=false;
     scheduleLive();
   });
   el.applyBtn.addEventListener('click',handleApply);
