@@ -21,7 +21,7 @@ const state={
   renderTask:null,
   drag:null,
   hoverActive:false,
-  forceAppliedView:false,   // <-- new lock
+  forceAppliedView:false,
 };
 let _liveRafId=null;
 let _canvasQueue=Promise.resolve();
@@ -277,8 +277,6 @@ async function loadPDF(file){
 }
 function scheduleLive(){
   if(!state.originalPdfJsDoc)return;
-  // While the applied view is locked, ignore pure live requests
-  // (drag is allowed and will release the lock)
   if(state.forceAppliedView && !state.drag)return;
   if(_liveRafId)cancelAnimationFrame(_liveRafId);
   _liveRafId=requestAnimationFrame(()=>{_liveRafId=null;queueCanvasTask(drawLive);});
@@ -306,6 +304,12 @@ function drawSelectionBorder(ctx,cx,cy,w,h,rad){
   ctx.restore();
 }
 async function drawLive(){
+  // Critical: if the applied view is locked, do nothing.
+  // This kills any previously queued live draws that would otherwise paint the border.
+  if(state.forceAppliedView && !state.drag){
+    return;
+  }
+
   if(!state.originalPdfJsDoc)return;
   try{
     if(state.basePageNum!==state.currentPage||!state.baseCanvas.width){
@@ -348,7 +352,6 @@ async function drawLive(){
         });
         ctx.restore();
         if(state.pattern==='single'){
-          // Border only while dragging or hovering BEFORE Apply
           if(state.drag || (state.hoverActive && !state.forceAppliedView)){
             drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
           }
@@ -453,7 +456,6 @@ async function handleApply(){
   if(!state.pdfBytes)return;
   if(el.applyBtn.disabled)return;
 
-  // Hard cancel any pending live work
   if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
   state.hoverActive=false;
   state.drag=null;
@@ -468,7 +470,7 @@ async function handleApply(){
     if(!bytes){hideLoader();resetApplyButton();return;}
 
     state.watermarkedBytes=bytes;
-    state.forceAppliedView=true;          // lock the view
+    state.forceAppliedView=true;
     state.hoverActive=false;
     state.drag=null;
 
@@ -476,7 +478,6 @@ async function handleApply(){
     state.totalPages=state.pdfJsDoc.numPages;
     el.filePages.textContent=state.totalPages+(state.totalPages===1?' page':' pages');
 
-    // Final cancel in case anything slipped through
     if(_liveRafId){cancelAnimationFrame(_liveRafId);_liveRafId=null;}
 
     await renderPage(state.currentPage);
@@ -515,7 +516,6 @@ function syncRange(inp,disp,cb,bipolar){
   inp.addEventListener('input',()=>{
     if(disp)disp.textContent=inp.value;
     updateSliderFill(inp,bipolar);
-    // Any setting change releases the applied lock
     state.forceAppliedView=false;
     if(cb)cb();
   });
@@ -702,7 +702,6 @@ function setupCanvasDrag(){
     const box=getActiveDragBox();
     if(!hitTestBox(pt.x,pt.y,box))return;
     evt.preventDefault();
-    // Starting a drag releases the applied lock
     state.forceAppliedView=false;
     state.drag={type:box.type,grabDX:pt.x-box.cx,grabDY:pt.y-box.cy,w:box.w,h:box.h};
     state.hoverActive=true;
@@ -732,7 +731,6 @@ function setupCanvasDrag(){
     el.canvas.style.cursor=hit?'grab':'default';
     if(hit!==state.hoverActive){
       state.hoverActive=hit;
-      // Only live-redraw on hover when the applied view is NOT locked
       if(!state.forceAppliedView){
         scheduleLive();
       }
