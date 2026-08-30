@@ -20,8 +20,15 @@ const state={
   baseRenderTask:null,
   renderTask:null,
   drag:null,
+  hoverActive:false,
 };
 let _liveRafId=null;
+let _canvasQueue=Promise.resolve();
+function queueCanvasTask(taskFn){
+  const result=_canvasQueue.then(taskFn,taskFn);
+  _canvasQueue=result.then(()=>{},()=>{});
+  return result;
+}
 const $=id=>document.getElementById(id);
 const el={
   root:document.getElementById('wpwm-root'),
@@ -130,6 +137,25 @@ function getStandardFontKey(){
   if(s.bold){if(s.italic)return StandardFonts.HelveticaBoldOblique;return StandardFonts.HelveticaBold;}
   if(s.italic)return StandardFonts.HelveticaOblique;
   return StandardFonts.Helvetica;
+}
+function parseColorInput(val){
+  val=(val||'').trim();
+  const rgbaMatch=val.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/i);
+  if(rgbaMatch){
+    const r=Math.max(0,Math.min(255,parseInt(rgbaMatch[1],10)));
+    const g=Math.max(0,Math.min(255,parseInt(rgbaMatch[2],10)));
+    const b=Math.max(0,Math.min(255,parseInt(rgbaMatch[3],10)));
+    let a=null;
+    if(rgbaMatch[4]!==undefined){a=Math.max(0,Math.min(1,parseFloat(rgbaMatch[4])));}
+    return{r,g,b,a};
+  }
+  let hex=val;
+  if(hex.charAt(0)!=='#')hex='#'+hex;
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)){
+    const rgb=hexToRgb255(hex);
+    return{r:rgb.r,g:rgb.g,b:rgb.b,a:null};
+  }
+  return null;
 }
 function sanitizeFilename(name){
   return name.replace(/[\\/:*?"<>|]+/g,'').trim();
@@ -247,7 +273,7 @@ async function loadPDF(file){
   }catch(e){showError('Failed to load PDF: '+e.message);}
   finally{hideLoader();}
 }
-function scheduleLive(){if(!state.originalPdfJsDoc)return;if(_liveRafId)cancelAnimationFrame(_liveRafId);_liveRafId=requestAnimationFrame(drawLive);}
+function scheduleLive(){if(!state.originalPdfJsDoc)return;if(_liveRafId)cancelAnimationFrame(_liveRafId);_liveRafId=requestAnimationFrame(()=>{_liveRafId=null;queueCanvasTask(drawLive);});}
 async function renderBasePage(){
   const SCALE=1.5;
   const page=await state.originalPdfJsDoc.getPage(state.currentPage);
@@ -260,8 +286,18 @@ async function renderBasePage(){
   state.baseRenderTask=null;
   state.basePageNum=state.currentPage;
 }
+function drawSelectionBorder(ctx,cx,cy,w,h,rad){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-rad);
+  ctx.strokeStyle='#2563eb';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([6,4]);
+  ctx.strokeRect(-w/2-8,-h/2-8,w+16,h+16);
+  ctx.restore();
+}
 async function drawLive(){
-  _liveRafId=null;if(!state.originalPdfJsDoc||state.liveRendering)return;state.liveRendering=true;
+  if(!state.originalPdfJsDoc)return;
   try{
     if(state.basePageNum!==state.currentPage||!state.baseCanvas.width){
       await renderBasePage();
@@ -297,6 +333,11 @@ async function drawLive(){
         ctx.restore();
       });
       ctx.restore();
+      if(state.pattern==='single'){
+        if(state.hoverActive||state.drag){
+          drawSelectionBorder(ctx,positions[0].x,positions[0].y,tw,th,rad);
+        }
+      }
     }else if(state.activeTab==='image'){
       const im=state.watermarkImageEl;
       if(im){if(im.complete){if(im.naturalWidth>0){
@@ -316,15 +357,19 @@ async function drawLive(){
         ctx.rotate(-rad);
         ctx.drawImage(im,-dw/2,-dh/2,dw,dh);
         ctx.restore();
+        if(state.hoverActive||state.drag){
+          drawSelectionBorder(ctx,cx,cy,dw,dh,rad);
+        }
       }}}
     }
     }
     el.pageInfo.textContent='Page '+state.currentPage+' / '+state.totalPages;
   }catch(e){console.warn('live preview:',e);}
-  finally{state.liveRendering=false;}
 }
 async function renderPage(n){
-  if(state.rendering)return;state.rendering=true;
+  return queueCanvasTask(()=>renderPageInner(n));
+}
+async function renderPageInner(n){
   try{
     const page=await state.pdfJsDoc.getPage(n);const vp=page.getViewport({scale:1.5});
     el.canvas.width=vp.width;el.canvas.height=vp.height;el.canvas.style.display='block';
@@ -335,7 +380,6 @@ async function renderPage(n){
     state.renderTask=null;
     el.pageInfo.textContent='Page '+n+' / '+state.totalPages;
   }catch(e){if(e){if(e.name!=='RenderingCancelledException')showError('Preview failed: '+e.message);}}
-  finally{state.rendering=false;}
 }
 async function applyText(){
   const text=el.wmText.value.trim()||'WATERMARK';
@@ -499,11 +543,8 @@ function positionColorPopover(){
   el.colorPopover.style.left=left+'px';
   el.colorPopover.style.top=top+'px';
 }
-function updateColorPopoverUI(){
-  const rgb=hsvToRgb(colorPopoverHue,colorPopoverSat,colorPopoverVal);
-  const hex=rgbToHex(rgb.r,rgb.g,rgb.b);
+function applyColorPopoverColor(hex){
   el.textColor.value=hex;
-  el.colorHexInput.value=hex;
   el.colorPopoverPreview.style.background=hex;
   el.svBox.style.background='linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, rgba(255,255,255,0)), hsl('+colorPopoverHue+',100%,50%)';
   el.svHandle.style.left=(colorPopoverSat*100)+'%';
@@ -511,6 +552,17 @@ function updateColorPopoverUI(){
   el.hueSlider.value=colorPopoverHue;
   document.querySelectorAll('.wpwm-swatch').forEach(s=>s.classList.remove('wpwm-swatch-active'));
   scheduleLive();
+}
+function updateColorPopoverUI(){
+  const rgb=hsvToRgb(colorPopoverHue,colorPopoverSat,colorPopoverVal);
+  const hex=rgbToHex(rgb.r,rgb.g,rgb.b);
+  el.colorHexInput.value=hex;
+  applyColorPopoverColor(hex);
+}
+function updateColorPopoverUIPreserveInput(){
+  const rgb=hsvToRgb(colorPopoverHue,colorPopoverSat,colorPopoverVal);
+  const hex=rgbToHex(rgb.r,rgb.g,rgb.b);
+  applyColorPopoverColor(hex);
 }
 function openColorPopover(){
   const rgb=hexToRgb255(el.textColor.value);
@@ -574,13 +626,18 @@ function setupColorPopover(){
     colorPopoverHue=parseFloat(el.hueSlider.value);updateColorPopoverUI();
   });
   el.colorHexInput.addEventListener('input',()=>{
-    let val=el.colorHexInput.value.trim();
-    if(val.charAt(0)!=='#')val='#'+val;
-    if(/^#[0-9a-fA-F]{6}$/.test(val)){
-      const rgb=hexToRgb255(val);
-      const hsv=rgbToHsv(rgb.r,rgb.g,rgb.b);
+    const parsed=parseColorInput(el.colorHexInput.value);
+    if(parsed){
+      const hsv=rgbToHsv(parsed.r,parsed.g,parsed.b);
       colorPopoverHue=hsv.h;colorPopoverSat=hsv.s;colorPopoverVal=hsv.v;
-      updateColorPopoverUI();
+      if(parsed.a!==null){
+        const pct=Math.round(parsed.a*100);
+        el.textOpacity.value=pct;
+        el.textOpVal.textContent=pct;
+        updateSliderFill(el.textOpacity);
+      }
+      updateColorPopoverUIPreserveInput();
+      scheduleLive();
     }
   });
   document.addEventListener('click',e=>{
@@ -603,7 +660,9 @@ function setupCanvasDrag(){
     if(!hitTestBox(pt.x,pt.y,box))return;
     evt.preventDefault();
     state.drag={type:box.type,grabDX:pt.x-box.cx,grabDY:pt.y-box.cy,w:box.w,h:box.h};
+    state.hoverActive=true;
     el.canvas.style.cursor='grabbing';
+    scheduleLive();
   }
   function move(evt){
     if(state.drag){
@@ -624,14 +683,25 @@ function setupCanvasDrag(){
     }
     const pt=canvasPointFromEvent(evt);
     const box=getActiveDragBox();
-    el.canvas.style.cursor=hitTestBox(pt.x,pt.y,box)?'grab':'default';
+    const hit=hitTestBox(pt.x,pt.y,box);
+    el.canvas.style.cursor=hit?'grab':'default';
+    if(hit!==state.hoverActive){
+      state.hoverActive=hit;
+      scheduleLive();
+    }
   }
   function up(){
-    if(state.drag){state.drag=null;el.canvas.style.cursor='default';}
+    if(state.drag){state.drag=null;el.canvas.style.cursor='default';scheduleLive();}
   }
   el.canvas.addEventListener('mousedown',down);
   document.addEventListener('mousemove',move);
   document.addEventListener('mouseup',up);
+  el.canvas.addEventListener('mouseleave',()=>{
+    if(!state.drag){
+      if(state.hoverActive){state.hoverActive=false;scheduleLive();}
+      el.canvas.style.cursor='default';
+    }
+  });
   el.canvas.addEventListener('touchstart',down,{passive:false});
   el.canvas.addEventListener('touchmove',move,{passive:false});
   el.canvas.addEventListener('touchend',up);
@@ -643,6 +713,7 @@ function refreshPreview(){
 }
 function switchTab(tab){
   state.activeTab=tab;
+  state.hoverActive=false;state.drag=null;
   if(tab==='text'){el.tabText.classList.add('wpwm-tab-active');el.tabImage.classList.remove('wpwm-tab-active');el.textOptions.classList.remove('wpwm-hidden');el.imageOptions.classList.add('wpwm-hidden');}
   else{el.tabImage.classList.add('wpwm-tab-active');el.tabText.classList.remove('wpwm-tab-active');el.imageOptions.classList.remove('wpwm-hidden');el.textOptions.classList.add('wpwm-hidden');}
   refreshPreview();
@@ -674,7 +745,7 @@ function init(){
   el.fileInput.addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);});
   el.removeFile.addEventListener('click',()=>{
     state.pdfFile=state.pdfBytes=state.pdfDoc=state.pdfJsDoc=state.originalPdfJsDoc=state.watermarkedBytes=null;
-    state.basePageNum=null;state.drag=null;
+    state.basePageNum=null;state.drag=null;state.hoverActive=false;
     el.outputFilename.value='';
     closeColorPopover();
     el.root.classList.remove('wpwm-file-loaded');el.fileInfo.classList.add('wpwm-hidden');
